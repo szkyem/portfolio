@@ -8,6 +8,7 @@
 // 絶対に他人と共有しないでください。
 // 絶対に公開リポジトリに置かないでください。
 
+window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyB2CH410X3yk4YTJWFC2JyEWScXZn77Z3I",
   authDomain: "my-portfolio-d3560.firebaseapp.com",
   projectId: "my-portfolio-d3560",
@@ -15,5 +16,7 @@
   messagingSenderId: "293517847141",
   appId: "1:293517847141:web:bec173cf345b47cf91f48c",
   measurementId: "G-5Y46F21GN0"
+};
 
 console.log('✅ config.js が読み込まれました。');
+
