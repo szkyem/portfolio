@@ -118,14 +118,14 @@
         <div class="login-section" id="loginSection">
             <h1>📚 My Contents</h1>
             <p style="margin-bottom: 20px; color: #666;">ログインして目次を表示</p>
-            <button onclick="loginWithGoogle()">🔐 Google でログイン</button>
+            <button id="loginBtn">🔐 Google でログイン</button>
         </div>
 
         <div class="toc-section" id="tocSection">
             <div class="user-info" id="userInfo">
                 <p>ログイン中:</p>
                 <p class="user-email" id="userEmail"></p>
-                <button class="logout-btn" onclick="logout()">ログアウト</button>
+                <button class="logout-btn" id="logoutBtn">ログアウト</button>
             </div>
 
             <h2>📖 目次</h2>
@@ -161,10 +161,21 @@
         // Firebase初期化
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const database = firebase.database();
+
+        // ボタンのクリックイベントリスナー
+        document.getElementById('loginBtn').addEventListener('click', function() {
+            console.log('ログインボタンがクリックされました');
+            loginWithGoogle();
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            console.log('ログアウトボタンがクリックされました');
+            logout();
+        });
 
         // ユーザー状態の監視
         auth.onAuthStateChanged(function(user) {
+            console.log('ユーザー状態が変わりました:', user);
             if (user) {
                 showLoggedInUI(user);
             } else {
@@ -174,16 +185,29 @@
 
         // Google でログイン
         function loginWithGoogle() {
+            console.log('loginWithGoogle が呼び出されました');
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider)
+                .then(result => {
+                    console.log('ログイン成功:', result.user.email);
+                })
                 .catch(error => {
+                    console.error('ログインエラー:', error);
                     showError('ログインエラー: ' + error.message);
                 });
         }
 
         // ログアウト
         function logout() {
-            auth.signOut();
+            console.log('logout が呼び出されました');
+            auth.signOut()
+                .then(() => {
+                    console.log('ログアウト成功');
+                    showLoginUI();
+                })
+                .catch(error => {
+                    console.error('ログアウトエラー:', error);
+                });
         }
 
         // UI表示: ログイン前
@@ -222,6 +246,8 @@
             errorEl.textContent = message;
             errorEl.classList.add('show');
         }
+
+        console.log('スクリプトの初期化が完了しました');
     </script>
 </body>
 </html>
