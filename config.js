@@ -8,15 +8,19 @@
 // 絶対に他人と共有しないでください。
 // 絶対に公開リポジトリに置かないでください。
 
+// 🔐 config.js - Firebase Credentials
+
 window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyB2CH410X3yk4YTJWFC2JyEWScXZn77Z3I",
-  authDomain: "my-portfolio-d3560.firebaseapp.com",
-  projectId: "my-portfolio-d3560",
-  storageBucket: "my-portfolio-d3560.firebasestorage.app",
-  messagingSenderId: "293517847141",
-  appId: "1:293517847141:web:bec173cf345b47cf91f48c",
-  measurementId: "G-5Y46F21GN0"
+    apiKey: "AIzaSyB2CH410X3yk4YTJWFC2JyEWScXZn77Z3I",
+    authDomain: "my-portfolio-d3560.firebaseapp.com",
+    databaseURL: "https://my-portfolio-d3560-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    projectId: "my-portfolio-d3560",
+    storageBucket: "my-portfolio-d3560.appspot.com",
+    messagingSenderId: "293517847141",
+    appId: "1:293517847141:web:bec173cf345b47cf91f48c"
 };
+
+console.log('✅ config.js が読み込まれました。');
 
 console.log('✅ config.js が読み込まれました。');
 
