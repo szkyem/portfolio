@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio - Firebase Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 90%;
+            max-width: 500px;
+        }
+        .login-section {
+            text-align: center;
+        }
+        .login-section h1 {
+            margin-bottom: 30px;
+            color: #333;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .logout-btn {
+            background: #e74c3c;
+            margin-left: 10px;
+        }
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+        .toc-section {
+            display: none;
+        }
+        .toc-section.active {
+            display: block;
+        }
+        .toc-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .toc-list {
+            list-style: none;
+        }
+        .toc-list li {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .toc-list li:hover {
+            background: #e8e8ff;
+            padding-left: 15px;
+        }
+        .user-info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .user-info.active {
+            display: block;
+        }
+        .user-info p {
+            color: #666;
+            margin: 5px 0;
+        }
+        .user-email {
+            font-weight: bold;
+            color: #333;
+        }
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- エラーメッセージ -->
+        <div class="error-message" id="errorMessage"></div>
+
+        <!-- ログイン前 -->
+        <div class="login-section" id="loginSection">
+            <h1>📚 My Contents</h1>
+            <p style="margin-bottom: 20px; color: #666;">ログインして目次を表示</p>
+            <button onclick="loginWithGoogle()">🔐 Google でログイン</button>
+        </div>
+
+        <!-- ログイン後 -->
+        <div class="toc-section" id="tocSection">
+            <div class="user-info" id="userInfo">
+                <p>ログイン中:</p>
+                <p class="user-email" id="userEmail"></p>
+                <button class="logout-btn" onclick="logout()">ログアウト</button>
+            </div>
+
+            <h2>📖 目次</h2>
+            <ul class="toc-list" id="tocList">
+                <li onclick="showContent('chapter1')">第1章: はじめに</li>
+                <li onclick="showContent('chapter2')">第2章: 基本概念</li>
+                <li onclick="showContent('chapter3')">第3章: 実装方法</li>
+                <li onclick="showContent('chapter4')">第4章: まとめ</li>
+            </ul>
+
+            <div id="contentArea" style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 5px; display: none;">
+                <div id="contentDisplay"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js"></script>
+    <script>
+        // ========================
+        // Firebase 設定
+        // ========================
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9vWK1o5flljBwYVurntMcjU-WLy3UenQ",
+            authDomain: "portfolio-24691.firebaseapp.com",
+            databaseURL: "https://portfolio-24691-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "portfolio-24691",
+            storageBucket: "portfolio-24691.firebasestorage.app",
+            messagingSenderId: "1060589674464",
+            appId: "1:1060589674464:web:ad788f32bc2877f3d7d585",
+            measurementId: "G-VQEPCYQR4Y"
+        };
+
+        // ========================
+        // Firebase 初期化
+        // ========================
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const database = firebase.database();
+        } catch (error) {
+            showError('Firebase 初期化エラー: ' + error.message);
+            console.error('Firebase init error:', error);
+        }
+
+        // ========================
+        // ユーザー認証状態の監視
+        // ========================
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                showLoggedInUI(user);
+                loadContentsFromFirebase(user.uid);
+            } else {
+                showLoginUI();
+            }
+        });
+
+        // ========================
+        // Google でログイン
+        // ========================
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .catch(error => {
+                    showError('ログインエラー: ' + error.message);
+                    console.error('Login error:', error);
+                });
+        }
+
+        // ========================
+        // ログアウト
+        // ========================
+        function logout() {
+            auth.signOut()
+                .then(() => {
+                    showLoginUI();
+                })
+                .catch(error => {
+                    showError('ログアウトエラー: ' + error.message);
+                });
+        }
+
+        // ========================
+        // UI表示: ログイン前
+        // ========================
+        function showLoginUI() {
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('tocSection').classList.remove('active');
+            document.getElementById('errorMessage').classList.remove('show');
+        }
+
+        // ========================
+        // UI表示: ログイン後
+        // ========================
+        function showLoggedInUI(user) {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('tocSection').classList.add('active');
+            document.getElementById('userInfo').classList.add('active');
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('errorMessage').classList.remove('show');
+        }
+
+        // ========================
+        // Firebase からコンテンツを読み込み
+        // ========================
+        function loadContentsFromFirebase(userId) {
+            database.ref('users/' + userId + '/contents').on('value', snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    console.log('Firebase からコンテンツを読み込みました:', data);
+                    // ここで動的に目次を更新できます
+                } else {
+                    console.log('Firebase にコンテンツがまだ登録されていません');
+                }
+            }, error => {
+                showError('コンテンツ読み込みエラー: ' + error.message);
+                console.error('Database error:', error);
+            });
+        }
+
+        // ========================
+        // コンテンツ表示
+        // ========================
+        function showContent(chapterId) {
+            const contents = {
+                chapter1: {
+                    title: '第1章: はじめに',
+                    text: 'これはサンプルコンテンツです。Firebase に実際のコンテンツを保管できます。'
+                },
+                chapter2: {
+                    title: '第2章: 基本概念',
+                    text: 'GitHub と Firebase を連携させることで、コードは GitHub、データは Firebase で管理できます。'
+                },
+                chapter3: {
+                    title: '第3章: 実装方法',
+                    text: 'このデモでは Google 認証を使用しています。他の認証方法も利用可能です。'
+                },
+                chapter4: {
+                    title: '第4章: まとめ',
+                    text: 'さらに詳しい情報は Firebase 公式ドキュメントを参照してください。'
+                }
+            };
+
+            const content = contents[chapterId];
+            if (content) {
+                document.getElementById('contentDisplay').innerHTML = 
+                    `<h3>${content.title}</h3><p>${content.text}</p>`;
+                document.getElementById('contentArea').style.display = 'block';
+            }
+        }
+
+        // ========================
+        // エラー表示
+        // ========================
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+    </script>
+</body>
+</html>
