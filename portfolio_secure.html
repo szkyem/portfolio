@@ -60,7 +60,6 @@
         .panel-title { font-weight: 600; font-size: 12px; margin-bottom: 0.75rem; }
         input[type="text"] { width: 100%; padding: 0.5rem; border: 1px solid #FFCC80; border-radius: 4px; font-size: 12px; margin-bottom: 0.75rem; font-family: inherit; }
         textarea { width: 100%; height: 80px; padding: 0.75rem; border: 1px solid #FFCC80; border-radius: 4px; font-size: 12px; font-family: inherit; resize: vertical; margin-bottom: 0.75rem; }
-        .btn-group { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
         .stumble-btn { background: #FF6B6B; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: 600; flex: 1; }
         .stumble-timeline { position: relative; padding-left: 1.5rem; }
         .stumble-line { position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #e0e0e0; }
@@ -74,14 +73,12 @@
         .milestone-dot { position: absolute; left: -8px; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; background: #4CAF50; top: 0; }
         .milestone-card { padding: 1rem; border-radius: 8px; border: 1px solid #C8E6C9; background: #F1F8E9; transition: all 0.2s; }
         .milestone-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .milestone-card.editing { background: #FFF9C4; border-color: #FBC02D; }
         .milestone-date { font-size: 11px; color: #999; margin-bottom: 0.5rem; }
         .milestone-content { font-size: 13px; color: #333; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; padding: 0.75rem; background: white; border-radius: 4px; margin-bottom: 0.5rem; }
         .milestone-content.editable { cursor: pointer; background: #FFFACD; }
         .milestone-content.editable:hover { background: #FFEB99; }
         .milestone-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
         .milestone-delete { background: #FF6B6B; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 3px; font-size: 10px; cursor: pointer; }
-        .milestone-edit-hint { font-size: 10px; color: #999; font-style: italic; }
         .file-link { color: #1D9E75; cursor: pointer; text-decoration: underline; font-size: 12px; }
         .file-link:hover { color: #0a6c4a; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
@@ -98,36 +95,7 @@
         @media (max-width: 768px) { .panels { grid-template-columns: 1fr; } h1 { font-size: 24px; } .detail-title { font-size: 20px; } }
     </style>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-        import {
-            getAuth,
-            GoogleAuthProvider,
-            signInWithPopup,
-            signOut,
-            onAuthStateChanged
-        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-        import {
-            getDatabase,
-            ref,
-            set,
-            get,
-            onValue
-        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
-
-        const firebaseConfig = window.FIREBASE_CONFIG;
-        const app = initializeApp(firebaseConfig);
-        window.auth = getAuth(app);
-        window.db = getDatabase(app);
-        window.GoogleAuthProvider = GoogleAuthProvider;
-        window.signInWithPopup = signInWithPopup;
-        window.signOut = signOut;
-        window.onAuthStateChanged = onAuthStateChanged;
-        window.ref = ref;
-        window.set = set;
-        window.get = get;
-        window.onValue = onValue;
-    </script>
+    <script src="config.js"></script>
 </head>
 <body>
     <div class="container">
@@ -184,56 +152,53 @@
         </div>
     </div>
 
-    <script>
-        // ⚠️ 重要：config.js を先に読み込むことが必須
-        // <script src="config.js"></script> を HTML の body タグ末尾に追加してください
-        
-        // config.js から firebase credentials が読み込まれると
-        // window.FIREBASE_CONFIG に Firebase 設定が格納されます
-        
-        // Firebase 初期化
-        // config.js が読み込まれるまで待機
-        if (typeof window.FIREBASE_CONFIG === 'undefined') {
-            console.error('❌ エラー: config.js が読み込まれていません。');
-            console.error('HTML の </body> タグの直前に以下を追加してください：');
-            console.error('  <script src="config.js"></script>');
-            alert('設定ファイルが見つかりません。管理者に連絡してください。');
-        } else {
-            firebase.initializeApp(window.FIREBASE_CONFIG);
-        }
-        
-        const db = firebase.database();
-        const auth = firebase.auth();
-        const provider = new firebase.auth.GoogleAuthProvider();
-        
-        // スマホ対応：persistenceを設定
-        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(error => {
-            console.error('Persistence設定エラー:', error);
-        });
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import {
+            getAuth,
+            GoogleAuthProvider,
+            onAuthStateChanged,
+            signInWithPopup,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import {
+            getDatabase,
+            ref,
+            set,
+            get,
+            onValue
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+        const firebaseConfig = window.FIREBASE_CONFIG;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+        const provider = new GoogleAuthProvider();
 
         const data = { categories: [] };
         let curr = { category: null, project: null, item: null };
         let currentUser = null;
         let isMember = false;
         let isAdmin = false;
-        let activeTabIndex = 0;  // ← 現在のタブインデックスを記録
+        let activeTabIndex = 0;
 
-        function loginWithGoogle() {
-            // スマホ対応：popupの代わりにredirectを使用
-            auth.signInWithRedirect(provider).catch(error => {
-                console.error('Googleログインエラー:', error);
-                showMessage('Googleログインに失敗しました: ' + error.message, 'error');
-            });
+        window.loginWithGoogle = function() {
+            signInWithPopup(auth, provider)
+                .catch(error => {
+                    console.error('ログインエラー:', error);
+                    showMessage('Googleログインに失敗しました: ' + error.message, 'error');
+                });
         }
 
-        function logout() {
-            auth.signOut().catch(error => {
-                console.error('ログアウトエラー:', error);
-                showMessage('ログアウトに失敗しました: ' + error.message, 'error');
-            });
+        window.logout = function() {
+            signOut(auth)
+                .catch(error => {
+                    console.error('ログアウトエラー:', error);
+                    showMessage('ログアウトに失敗しました: ' + error.message, 'error');
+                });
         }
 
-        auth.onAuthStateChanged(async user => {
+        onAuthStateChanged(auth, async user => {
             clearMessage();
             currentUser = user;
 
@@ -248,13 +213,8 @@
             updateAuthInfo('認証確認中…');
 
             try {
-                // Redirectからの戻り値を処理
-                const result = await auth.getRedirectResult();
-                
-                const [memberSnap, adminSnap] = await Promise.all([
-                    db.ref('members/' + user.uid).once('value'),
-                    db.ref('admins/' + user.uid).once('value')
-                ]);
+                const memberSnap = await get(ref(database, 'members/' + user.uid));
+                const adminSnap = await get(ref(database, 'admins/' + user.uid));
 
                 isMember = memberSnap.val() === true;
                 isAdmin = adminSnap.val() === true;
@@ -335,57 +295,14 @@
             document.getElementById('messageArea').innerHTML = '';
         }
 
-        function normalizeTask(task) {
-            return {
-                text: task?.text || '',
-                done: !!task?.done
-            };
-        }
-
-        function normalizePhase(ph, idx = 0) {
-            const tasks = Array.isArray(ph?.tasks) ? ph.tasks : Object.values(ph?.tasks || {});
-            return {
-                number: ph?.number || (idx + 1),
-                title: ph?.title || `Phase ${idx + 1}`,
-                tasks: tasks.map(normalizeTask)
-            };
-        }
-
-        function normalizeItem(item) {
-            const phases = Array.isArray(item?.phases) ? item.phases : Object.values(item?.phases || {});
-            const statusMilestones = Array.isArray(item?.statusMilestones) ? item.statusMilestones : Object.values(item?.statusMilestones || {});
-            return {
-                id: item?.id || ('i_' + Date.now() + Math.random()),
-                name: item?.name || '無題アイテム',
-                icon: item?.icon || '📝',
-                phases: phases.map(normalizePhase),
-                stumbles: Array.isArray(item?.stumbles) ? item.stumbles : Object.values(item?.stumbles || {}),
-                issueAttachments: Array.isArray(item?.issueAttachments) ? item.issueAttachments : Object.values(item?.issueAttachments || {}),
-                statusAttachments: Array.isArray(item?.statusAttachments) ? item.statusAttachments : Object.values(item?.statusAttachments || {}),
-                statusMilestones: statusMilestones,
-                issueComment: item?.issueComment || '',
-                statusComment: item?.statusComment || '',
-                roadmapComment: item?.roadmapComment || ''
-            };
-        }
-
-        function normalizeProject(proj) {
-            const items = Array.isArray(proj?.items) ? proj.items : Object.values(proj?.items || {});
-            return {
-                id: proj?.id || ('p_' + Date.now() + Math.random()),
-                name: proj?.name || '無題プロジェクト',
-                items: items.map(normalizeItem)
-            };
-        }
-
-        function normalizeCategory(cat) {
-            const projects = Array.isArray(cat?.projects) ? cat.projects : Object.values(cat?.projects || {});
-            return {
-                id: cat?.id || ('c_' + Date.now() + Math.random()),
-                name: cat?.name || '無題カテゴリ',
-                icon: cat?.icon || '📁',
-                projects: projects.map(normalizeProject)
-            };
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, s => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[s]));
         }
 
         async function saveData() {
@@ -403,7 +320,7 @@
             if (!isAdmin) return;
 
             try {
-                await db.ref('portfolioData').set(JSON.parse(json));
+                await set(ref(database, 'portfolioData'), JSON.parse(json));
                 console.log('Firebase 保存成功');
             } catch (error) {
                 console.error('Firebase 保存エラー:', error);
@@ -415,7 +332,7 @@
             if (!currentUser || !isMember) return;
 
             try {
-                const snapshot = await db.ref('portfolioData').once('value');
+                const snapshot = await get(ref(database, 'portfolioData'));
                 data.categories = [];
 
                 if (snapshot.exists()) {
@@ -423,7 +340,7 @@
                     const rawCategories = Array.isArray(remoteData?.categories)
                         ? remoteData.categories
                         : Object.values(remoteData?.categories || {});
-                    data.categories = rawCategories.map(normalizeCategory);
+                    data.categories = rawCategories;
                 } else {
                     const saved = localStorage.getItem('portfolioDataBackup');
                     if (saved) {
@@ -431,11 +348,10 @@
                         const rawCategories = Array.isArray(parsed?.categories)
                             ? parsed.categories
                             : Object.values(parsed?.categories || {});
-                        data.categories = rawCategories.map(normalizeCategory);
+                        data.categories = rawCategories;
                     }
                 }
 
-                checkStorage();
                 goHome();
             } catch (error) {
                 console.error('Firebase 読み込みエラー:', error);
@@ -445,33 +361,15 @@
                     const rawCategories = Array.isArray(parsed?.categories)
                         ? parsed.categories
                         : Object.values(parsed?.categories || {});
-                    data.categories = rawCategories.map(normalizeCategory);
+                    data.categories = rawCategories;
                 }
-                checkStorage();
                 goHome();
                 showMessage('Firebase からの読み込みに失敗したため、ローカルバックアップを表示しています。', 'notice');
             }
         }
 
-        function checkStorage() {
-            const json = JSON.stringify(data);
-            const size = new Blob([json]).size;
-            const kb = (size / 1024).toFixed(2);
-            const percent = ((size / (5 * 1024 * 1024)) * 100).toFixed(1);
-
-            document.getElementById('storageWarning').innerHTML = percent > 80
-                ? `<div class="warning">⚠️ データサイズが大きくなっています。(${kb}KB / 5MB の目安)</div>`
-                : '';
-        }
-
-        function escapeHtml(str) {
-            return String(str).replace(/[&<>"']/g, s => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            }[s]));
+        function closeModal() {
+            document.getElementById('fileModal').classList.remove('show');
         }
 
         function showFile(fileName, fileData) {
@@ -486,10 +384,6 @@
                 preview.innerHTML = `<p style="font-weight: 600; margin-bottom: 1rem;">${escapeHtml(fileName)}</p><a href="${fileData}" download="${escapeHtml(fileName)}" style="display: inline-block; background: #1976D2; color: white; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none;">ダウンロード</a>`;
             }
             modal.classList.add('show');
-        }
-
-        function closeModal() {
-            document.getElementById('fileModal').classList.remove('show');
         }
 
         function goHome() {
@@ -511,17 +405,17 @@
                 card.className = 'card ' + (idx % 2 === 0 ? 'teal' : 'slate');
                 card.onclick = () => showProjects(cat.id);
 
-                const total = cat.projects.reduce((s, p) => s + p.items.reduce((ss, i) => ss + i.phases.reduce((sss, ph) => sss + ph.tasks.length, 0), 0), 0);
-                const done = cat.projects.reduce((s, p) => s + p.items.reduce((ss, i) => ss + i.phases.reduce((sss, ph) => sss + ph.tasks.filter(t => t.done).length, 0), 0), 0);
+                const total = cat.projects?.reduce((s, p) => s + p.items?.reduce((ss, i) => ss + i.phases?.reduce((sss, ph) => sss + ph.tasks?.length || 0, 0) || 0, 0) || 0, 0) || 0;
+                const done = cat.projects?.reduce((s, p) => s + p.items?.reduce((ss, i) => ss + i.phases?.reduce((sss, ph) => sss + ph.tasks?.filter(t => t.done)?.length || 0, 0) || 0, 0) || 0, 0) || 0;
                 const pct = total > 0 ? Math.round(done / total * 100) : 0;
 
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; gap: 0.75rem;">
                         <div ondblclick="event.stopPropagation(); editCategoryIcon(${idx})">
-                            <div class="card-icon">${escapeHtml(cat.icon)}</div>
+                            <div class="card-icon">${escapeHtml(cat.icon || '📁')}</div>
                         </div>
                         <div style="flex: 1;">
-                            <div class="card-title" ondblclick="event.stopPropagation(); editCategoryName(${idx})">${escapeHtml(cat.name)}</div>
+                            <div class="card-title" ondblclick="event.stopPropagation(); editCategoryName(${idx})">${escapeHtml(cat.name || '無題')}</div>
                         </div>
                         ${isAdmin ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteCategory(${idx})">削除</button>` : ''}
                     </div>
@@ -538,7 +432,7 @@
 
         function editCategoryIcon(idx) {
             if (!requireAdmin()) return;
-            const newIcon = prompt('アイコン:', data.categories[idx].icon);
+            const newIcon = prompt('アイコン:', data.categories[idx]?.icon || '');
             if (newIcon) {
                 data.categories[idx].icon = newIcon;
                 saveData();
@@ -548,7 +442,7 @@
 
         function editCategoryName(idx) {
             if (!requireAdmin()) return;
-            const newName = prompt('大項目名:', data.categories[idx].name);
+            const newName = prompt('大項目名:', data.categories[idx]?.name || '');
             if (newName && newName.trim()) {
                 data.categories[idx].name = newName.trim();
                 saveData();
@@ -587,22 +481,22 @@
             document.getElementById('projectsView').style.display = 'block';
             document.getElementById('itemsView').style.display = 'none';
             document.getElementById('projectsDetail').innerHTML =
-                `<div class="detail-header"><h2 class="detail-title" ondblclick="event.stopPropagation(); editCategoryNameFromProjects()">${escapeHtml(cat.icon)} ${escapeHtml(cat.name)}</h2></div>`;
+                `<div class="detail-header"><h2 class="detail-title" ondblclick="event.stopPropagation(); editCategoryNameFromProjects()">${escapeHtml(cat.icon || '📁')} ${escapeHtml(cat.name || '無題')}</h2></div>`;
 
             const grid = document.getElementById('projectsGrid');
             grid.innerHTML = '';
 
-            cat.projects.forEach((proj, pIdx) => {
+            (cat.projects || []).forEach((proj, pIdx) => {
                 const card = document.createElement('div');
                 card.className = 'card teal';
                 card.onclick = () => showItems(catId, proj.id);
 
                 let total = 0;
                 let done = 0;
-                proj.items.forEach(item => {
-                    item.phases.forEach(ph => {
-                        total += ph.tasks.length;
-                        done += ph.tasks.filter(t => t.done).length;
+                (proj.items || []).forEach(item => {
+                    (item.phases || []).forEach(ph => {
+                        total += (ph.tasks || []).length;
+                        done += (ph.tasks || []).filter(t => t.done).length;
                     });
                 });
                 const pct = total > 0 ? Math.round(done / total * 100) : 0;
@@ -610,11 +504,11 @@
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; gap: 0.75rem;">
                         <div style="flex: 1;">
-                            <strong ondblclick="event.stopPropagation(); editProjectName(${pIdx})" style="cursor: pointer;">${escapeHtml(proj.name)}</strong>
+                            <strong ondblclick="event.stopPropagation(); editProjectName(${pIdx})" style="cursor: pointer;">${escapeHtml(proj.name || '無題')}</strong>
                         </div>
                         ${isAdmin ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteProject(${pIdx})">削除</button>` : ''}
                     </div>
-                    <div style="margin-top: 0.5rem; font-size: 12px; color: #666;">小項目数: ${proj.items.length}</div>
+                    <div style="margin-top: 0.5rem; font-size: 12px; color: #666;">小項目数: ${(proj.items || []).length}</div>
                     <div style="margin-top: 0.75rem;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-size: 10px;">
                             <span>進捗</span><span style="font-weight: 600;">${pct}%</span>
@@ -632,7 +526,7 @@
         function editCategoryNameFromProjects() {
             if (!requireAdmin()) return;
             const cat = data.categories.find(c => c.id === curr.category);
-            const newName = prompt('大項目名:', cat.name);
+            const newName = prompt('大項目名:', cat?.name || '');
             if (newName && newName.trim()) {
                 cat.name = newName.trim();
                 saveData();
@@ -643,8 +537,8 @@
         function editProjectName(pIdx) {
             if (!requireAdmin()) return;
             const cat = data.categories.find(c => c.id === curr.category);
-            const proj = cat.projects[pIdx];
-            const newName = prompt('中項目名:', proj.name);
+            const proj = cat?.projects?.[pIdx];
+            const newName = prompt('中項目名:', proj?.name || '');
             if (newName && newName.trim()) {
                 proj.name = newName.trim();
                 saveData();
@@ -658,6 +552,7 @@
             if (!name) return;
 
             const cat = data.categories.find(c => c.id === curr.category);
+            if (!cat.projects) cat.projects = [];
             cat.projects.push({ id: 'p_' + Date.now(), name, items: [] });
             saveData();
             showProjects(curr.category);
@@ -679,7 +574,7 @@
             history.pushState({}, '');
 
             const cat = data.categories.find(c => c.id === catId);
-            const proj = cat.projects.find(p => p.id === projId);
+            const proj = cat?.projects?.find(p => p.id === projId);
             if (!proj) return;
 
             document.getElementById('homeView').style.display = 'none';
@@ -688,7 +583,7 @@
 
             document.getElementById('itemsDetail').innerHTML = `
                 <div class="detail-header">
-                    <h2 class="detail-title" ondblclick="event.stopPropagation(); editProjectNameFromItems()">${escapeHtml(proj.name)}</h2>
+                    <h2 class="detail-title" ondblclick="event.stopPropagation(); editProjectNameFromItems()">${escapeHtml(proj.name || '無題')}</h2>
                 </div>
                 <div id="itemsGrid" class="grid"></div>
                 ${isAdmin ? `<button class="add-btn admin-only" onclick="addItem()">+ 小項目を追加</button>` : ''}
@@ -697,23 +592,23 @@
             const grid = document.getElementById('itemsGrid');
             grid.innerHTML = '';
 
-            proj.items.forEach((item, iIdx) => {
+            (proj.items || []).forEach((item, iIdx) => {
                 const card = document.createElement('div');
                 card.className = 'card slate';
                 card.onclick = () => showItemDetail(catId, projId, item.id);
 
-                const total = item.phases.reduce((s, p) => s + p.tasks.length, 0);
-                const done = item.phases.reduce((s, p) => s + p.tasks.filter(t => t.done).length, 0);
+                const total = (item.phases || []).reduce((s, p) => s + (p.tasks || []).length, 0);
+                const done = (item.phases || []).reduce((s, p) => s + (p.tasks || []).filter(t => t.done).length, 0);
                 const pct = total > 0 ? Math.round(done / total * 100) : 0;
 
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; gap: 0.75rem;">
                         <div style="flex: 1;">
-                            <strong ondblclick="event.stopPropagation(); editItemName(${iIdx})" style="cursor: pointer;">${escapeHtml(item.icon)} ${escapeHtml(item.name)}</strong>
+                            <strong ondblclick="event.stopPropagation(); editItemName(${iIdx})" style="cursor: pointer;">${escapeHtml(item.icon || '📝')} ${escapeHtml(item.name || '無題')}</strong>
                         </div>
                         ${isAdmin ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteItem(${iIdx})">削除</button>` : ''}
                     </div>
-                    <div style="margin-top: 0.5rem; font-size: 12px; color: #666;">Phase数: ${item.phases.length}</div>
+                    <div style="margin-top: 0.5rem; font-size: 12px; color: #666;">Phase数: ${(item.phases || []).length}</div>
                     <div style="margin-top: 0.75rem;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-size: 10px;">
                             <span>進捗</span><span style="font-weight: 600;">${pct}%</span>
@@ -731,8 +626,8 @@
         function editProjectNameFromItems() {
             if (!requireAdmin()) return;
             const cat = data.categories.find(c => c.id === curr.category);
-            const proj = cat.projects.find(p => p.id === curr.project);
-            const newName = prompt('中項目名:', proj.name);
+            const proj = cat?.projects?.find(p => p.id === curr.project);
+            const newName = prompt('中項目名:', proj?.name || '');
             if (newName && newName.trim()) {
                 proj.name = newName.trim();
                 saveData();
@@ -747,7 +642,8 @@
             const icon = prompt('アイコン:') || '📝';
 
             const cat = data.categories.find(c => c.id === curr.category);
-            const proj = cat.projects.find(p => p.id === curr.project);
+            const proj = cat?.projects?.find(p => p.id === curr.project);
+            if (!proj.items) proj.items = [];
 
             proj.items.push({
                 id: 'i_' + Date.now(),
@@ -759,6 +655,7 @@
                 statusComment: '',
                 issueAttachments: [],
                 statusAttachments: [],
+                statusMilestones: [],
                 roadmapComment: ''
             });
 
@@ -769,9 +666,9 @@
         function editItemName(iIdx) {
             if (!requireAdmin()) return;
             const cat = data.categories.find(c => c.id === curr.category);
-            const proj = cat.projects.find(p => p.id === curr.project);
-            const item = proj.items[iIdx];
-            const newName = prompt('小項目名:', item.name);
+            const proj = cat?.projects?.find(p => p.id === curr.project);
+            const item = proj?.items?.[iIdx];
+            const newName = prompt('小項目名:', item?.name || '');
             if (newName && newName.trim()) {
                 item.name = newName.trim();
                 saveData();
@@ -783,7 +680,7 @@
             if (!requireAdmin()) return;
             if (!confirm('削除しますか？')) return;
             const cat = data.categories.find(c => c.id === curr.category);
-            const proj = cat.projects.find(p => p.id === curr.project);
+            const proj = cat?.projects?.find(p => p.id === curr.project);
             proj.items.splice(iIdx, 1);
             saveData();
             showItems(curr.category, curr.project);
@@ -802,7 +699,7 @@
 
             document.getElementById('itemsDetail').innerHTML = `
                 <div class="detail-header">
-                    <h2 class="detail-title" ondblclick="event.stopPropagation(); editItemNameFromDetail()">${escapeHtml(item.icon)} ${escapeHtml(item.name)}</h2>
+                    <h2 class="detail-title" ondblclick="event.stopPropagation(); editItemNameFromDetail()">${escapeHtml(item.icon || '📝')} ${escapeHtml(item.name || '無題')}</h2>
                 </div>
                 <div id="itemTabs"></div>
             `;
@@ -815,7 +712,7 @@
         function editItemNameFromDetail() {
             if (!requireAdmin()) return;
             const item = getItem();
-            const newName = prompt('小項目名:', item.name);
+            const newName = prompt('小項目名:', item?.name || '');
             if (newName && newName.trim()) {
                 item.name = newName.trim();
                 saveData();
@@ -826,9 +723,9 @@
         function getItem() {
             const cat = data.categories.find(c => c.id === curr.category);
             if (!cat) return null;
-            const proj = cat.projects.find(p => p.id === curr.project);
+            const proj = cat.projects?.find(p => p.id === curr.project);
             if (!proj) return null;
-            return proj.items.find(i => i.id === curr.item) || null;
+            return proj.items?.find(i => i.id === curr.item) || null;
         }
 
         function renderTabs(item) {
@@ -848,26 +745,26 @@
             const tabContents = document.createElement('div');
 
             let roadmapHTML = '';
-            item.phases.forEach((ph, phIdx) => {
-                const done = ph.tasks.filter(t => t.done).length;
-                const total = ph.tasks.length;
+            (item.phases || []).forEach((ph, phIdx) => {
+                const done = (ph.tasks || []).filter(t => t.done).length;
+                const total = (ph.tasks || []).length;
                 const pct = total > 0 ? Math.round(done / total * 100) : 0;
 
                 roadmapHTML += `
                     <div class="phase">
                         <div class="phase-header">
                             <div class="phase-num">${ph.number}</div>
-                            <div class="phase-title" ondblclick="event.stopPropagation(); editPhaseTitle(${phIdx})">${escapeHtml(ph.title)}</div>
+                            <div class="phase-title" ondblclick="event.stopPropagation(); editPhaseTitle(${phIdx})">${escapeHtml(ph.title || '')}</div>
                             <span style="background: white; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 10px;">
                                 ${done === total && total > 0 ? '✓ 完了' : done > 0 ? `進行中 ${pct}%` : '計画中'}
                             </span>
                             ${isAdmin ? `<button class="delete-btn" onclick="deletePhase(${phIdx})">削除</button>` : ''}
                         </div>
                         <div class="phase-tasks">
-                            ${ph.tasks.map((t, tIdx) => `
+                            ${(ph.tasks || []).map((t, tIdx) => `
                                 <div class="task-item">
                                     <input type="checkbox" ${t.done ? 'checked' : ''} ${isAdmin ? `onchange="toggleTask(${phIdx}, ${tIdx})"` : 'disabled'}>
-                                    <div class="task-text ${t.done ? 'done' : ''}" ondblclick="event.stopPropagation(); editTask(${phIdx}, ${tIdx})">${escapeHtml(t.text)}</div>
+                                    <div class="task-text ${t.done ? 'done' : ''}" ondblclick="event.stopPropagation(); editTask(${phIdx}, ${tIdx})">${escapeHtml(t.text || '')}</div>
                                     ${isAdmin ? `<button class="delete-btn" onclick="deleteTask(${phIdx}, ${tIdx})">削除</button>` : ''}
                                 </div>
                             `).join('')}
@@ -879,8 +776,8 @@
 
             if (isAdmin) roadmapHTML += `<button class="add-phase-btn" onclick="addPhase()">+ Phase 追加</button>`;
 
-            const total = item.phases.reduce((s, p) => s + p.tasks.length, 0);
-            const done = item.phases.reduce((s, p) => s + p.tasks.filter(t => t.done).length, 0);
+            const total = (item.phases || []).reduce((s, p) => s + (p.tasks || []).length, 0);
+            const done = (item.phases || []).reduce((s, p) => s + (p.tasks || []).filter(t => t.done).length, 0);
             const pct = total > 0 ? Math.round(done / total * 100) : 0;
 
             roadmapHTML += `
@@ -946,14 +843,14 @@
             `;
 
             let stumblesHTML = '<div class="stumble-timeline"><div class="stumble-line"></div>';
-            if (item.stumbles.length > 0) {
-                item.stumbles.forEach((s, idx) => {
+            if ((item.stumbles || []).length > 0) {
+                (item.stumbles || []).forEach((s, idx) => {
                     stumblesHTML += `
                         <div class="stumble-entry">
                             <div class="stumble-dot"></div>
                             <div class="stumble-card" style="display: flex; justify-content: space-between; gap: 0.75rem;">
                                 <div style="flex: 1;">
-                                    <p style="font-weight: 600; margin-bottom: 0.5rem;">${escapeHtml(s.date)}</p>
+                                    <p style="font-weight: 600; margin-bottom: 0.5rem;">${escapeHtml(s.date || '')}</p>
                                     <p class="stumble-content" style="font-size: 12px; cursor: pointer; user-select: none;" ondblclick="event.stopPropagation(); editStumbleContent(${idx})">${escapeHtml(s.content || '')}</p>
                                 </div>
                                 ${isAdmin ? `<button class="delete-btn" onclick="deleteStumble(${idx})">削除</button>` : ''}
@@ -966,15 +863,13 @@
             }
             stumblesHTML += '</div>';
 
-            // グローバル変数の activeTabIndex を使用してタブの状態を復元
             tabContents.innerHTML = `
                 <div class="tab-content ${activeTabIndex === 0 ? 'active' : ''}">${roadmapHTML}</div>
                 <div class="tab-content ${activeTabIndex === 1 ? 'active' : ''}">${issuesHTML}</div>
                 <div class="tab-content ${activeTabIndex === 2 ? 'active' : ''}">${statusHTML}</div>
                 <div class="tab-content ${activeTabIndex === 3 ? 'active' : ''}">${stumblesHTML}</div>
             `;
-            
-            // タブボタンの active クラスも同期
+
             const allTabBtns = document.querySelectorAll('.tab-btn');
             allTabBtns.forEach((btn, idx) => {
                 if (idx === activeTabIndex) {
@@ -983,14 +878,13 @@
                     btn.classList.remove('active');
                 }
             });
-            
-            container.appendChild(tabContents);
 
+            container.appendChild(tabContents);
             applyRoleUI();
         }
 
         function switchTab(e, idx) {
-            activeTabIndex = idx;  // ← グローバル変数に記録
+            activeTabIndex = idx;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             document.querySelectorAll('.tab-content').forEach((c, i) => c.classList.toggle('active', i === idx));
@@ -999,7 +893,7 @@
         function editPhaseTitle(idx) {
             if (!requireAdmin()) return;
             const item = getItem();
-            const newTitle = prompt('Phase タイトル:', item.phases[idx].title);
+            const newTitle = prompt('Phase タイトル:', item.phases[idx]?.title || '');
             if (newTitle && newTitle.trim()) {
                 item.phases[idx].title = newTitle.trim();
                 saveData();
@@ -1010,7 +904,7 @@
         function editTask(phIdx, tIdx) {
             if (!requireAdmin()) return;
             const item = getItem();
-            const newText = prompt('タスク:', item.phases[phIdx].tasks[tIdx].text);
+            const newText = prompt('タスク:', item.phases?.[phIdx]?.tasks?.[tIdx]?.text || '');
             if (newText && newText.trim()) {
                 item.phases[phIdx].tasks[tIdx].text = newText.trim();
                 saveData();
@@ -1023,6 +917,7 @@
             const title = prompt('Phase タイトル:');
             if (!title) return;
             const item = getItem();
+            if (!item.phases) item.phases = [];
             item.phases.push({ number: item.phases.length + 1, title, tasks: [] });
             saveData();
             renderTabs(item);
@@ -1040,9 +935,11 @@
             if (!requireAdmin()) return;
             const text = prompt('タスク:');
             if (!text) return;
-            getItem().phases[phIdx].tasks.push({ text, done: false });
+            const item = getItem();
+            if (!item.phases[phIdx].tasks) item.phases[phIdx].tasks = [];
+            item.phases[phIdx].tasks.push({ text, done: false });
             saveData();
-            renderTabs(getItem());
+            renderTabs(item);
         }
 
         function toggleTask(phIdx, tIdx) {
@@ -1085,14 +982,14 @@
             }
 
             let html = '<div class="milestone-timeline"><div class="milestone-line"></div>';
-            
+
             item.statusMilestones.forEach((m, idx) => {
                 html += `
                     <div class="milestone-entry">
                         <div class="milestone-dot"></div>
                         <div class="milestone-card">
-                            <div class="milestone-date">📅 ${escapeHtml(m.date)}</div>
-                            <div class="milestone-content editable" 
+                            <div class="milestone-date">📅 ${escapeHtml(m.date || '')}</div>
+                            <div class="milestone-content editable"
                                  ondblclick="editStatusMilestone(${m.id}); event.stopPropagation();"
                                  title="ダブルクリックで編集">${escapeHtml(m.content || '')}</div>
                             ${(m.attachments || []).length > 0 ? `
@@ -1109,7 +1006,7 @@
                     </div>
                 `;
             });
-            
+
             html += '</div>';
             return html;
         }
@@ -1118,7 +1015,7 @@
             if (!requireAdmin()) return;
             const item = getItem();
             const comment = item.statusComment || '';
-            
+
             if (!comment.trim()) {
                 alert('コメントを入力してください');
                 return;
@@ -1149,7 +1046,7 @@
             if (!requireAdmin()) return;
             if (!confirm('削除しますか？')) return;
             const item = getItem();
-            item.statusMilestones = item.statusMilestones.filter(m => m.id !== id);
+            item.statusMilestones = (item.statusMilestones || []).filter(m => m.id !== id);
             saveData();
             renderTabs(item);
         }
@@ -1157,10 +1054,10 @@
         function editStatusMilestone(id) {
             if (!requireAdmin()) return;
             const item = getItem();
-            const milestone = item.statusMilestones.find(m => m.id === id);
+            const milestone = (item.statusMilestones || []).find(m => m.id === id);
             if (!milestone) return;
 
-            const newContent = prompt('マイルストーンを編集:', milestone.content);
+            const newContent = prompt('マイルストーンを編集:', milestone.content || '');
             if (newContent !== null) {
                 if (newContent.trim()) {
                     milestone.content = newContent.trim();
@@ -1184,12 +1081,13 @@
                 return;
             }
 
-            const isDuplicate = item.stumbles.some(s => s.date === dateStr && s.content === content);
+            const isDuplicate = (item.stumbles || []).some(s => s.date === dateStr && s.content === content);
             if (isDuplicate) {
                 alert('この内容は既に追加されています');
                 return;
             }
 
+            if (!item.stumbles) item.stumbles = [];
             item.stumbles.unshift({
                 date: dateStr,
                 title: content.substring(0, 40),
@@ -1212,8 +1110,8 @@
         function editStumbleContent(idx) {
             if (!requireAdmin()) return;
             const item = getItem();
-            const s = item.stumbles[idx];
-            const newContent = prompt('躓き履歴を編集:', s.content || '');
+            const s = (item.stumbles || [])[idx];
+            const newContent = prompt('躓き履歴を編集:', s?.content || '');
             if (newContent && newContent.trim()) {
                 item.stumbles[idx].content = newContent.trim();
                 item.stumbles[idx].title = newContent.substring(0, 40);
@@ -1230,6 +1128,7 @@
             const r = new FileReader();
             r.onload = () => {
                 const item = getItem();
+                if (!item.issueAttachments) item.issueAttachments = [];
                 item.issueAttachments.push({ name: f.name, data: r.result });
                 saveData();
                 renderTabs(item);
@@ -1253,6 +1152,7 @@
             const r = new FileReader();
             r.onload = () => {
                 const item = getItem();
+                if (!item.statusAttachments) item.statusAttachments = [];
                 item.statusAttachments.push({ name: f.name, data: r.result });
                 saveData();
                 renderTabs(item);
@@ -1273,42 +1173,68 @@
 
             if (curr.category) {
                 const cat = data.categories.find(c => c.id === curr.category);
-                if (cat) html += `<span class="separator"> > </span><button onclick="showProjects('${curr.category}')">${escapeHtml(cat.name)}</button>`;
+                if (cat) html += `<span class="separator"> > </span><button onclick="showProjects('${curr.category}')">${escapeHtml(cat.name || '無題')}</button>`;
             }
 
             if (curr.project) {
                 const cat = data.categories.find(c => c.id === curr.category);
-                const proj = cat?.projects.find(p => p.id === curr.project);
-                if (proj) html += `<span class="separator"> > </span><button onclick="showItems('${curr.category}', '${curr.project}')">${escapeHtml(proj.name)}</button>`;
+                const proj = cat?.projects?.find(p => p.id === curr.project);
+                if (proj) html += `<span class="separator"> > </span><button onclick="showItems('${curr.category}', '${curr.project}')">${escapeHtml(proj.name || '無題')}</button>`;
             }
 
             if (curr.item) {
                 const item = getItem();
-                if (item) html += `<span class="separator"> > </span><span>${escapeHtml(item.name)}</span>`;
+                if (item) html += `<span class="separator"> > </span><span>${escapeHtml(item.name || '無題')}</span>`;
             }
 
             document.getElementById('breadcrumb').innerHTML = html;
         }
 
         window.addEventListener('popstate', goHome);
+
+        // グローバル関数を window に公開
+        window.showFile = showFile;
+        window.closeModal = closeModal;
+        window.goHome = goHome;
+        window.showProjects = showProjects;
+        window.showItems = showItems;
+        window.showItemDetail = showItemDetail;
+        window.editCategoryIcon = editCategoryIcon;
+        window.editCategoryName = editCategoryName;
+        window.addCategory = addCategory;
+        window.deleteCategory = deleteCategory;
+        window.editCategoryNameFromProjects = editCategoryNameFromProjects;
+        window.editProjectName = editProjectName;
+        window.addProject = addProject;
+        window.deleteProject = deleteProject;
+        window.editProjectNameFromItems = editProjectNameFromItems;
+        window.addItem = addItem;
+        window.editItemName = editItemName;
+        window.deleteItem = deleteItem;
+        window.editItemNameFromDetail = editItemNameFromDetail;
+        window.switchTab = switchTab;
+        window.editPhaseTitle = editPhaseTitle;
+        window.editTask = editTask;
+        window.addPhase = addPhase;
+        window.deletePhase = deletePhase;
+        window.addTask = addTask;
+        window.toggleTask = toggleTask;
+        window.deleteTask = deleteTask;
+        window.updateRoadmapComment = updateRoadmapComment;
+        window.updateIssueComment = updateIssueComment;
+        window.updateStatusComment = updateStatusComment;
+        window.addStatusMilestone = addStatusMilestone;
+        window.deleteStatusMilestone = deleteStatusMilestone;
+        window.editStatusMilestone = editStatusMilestone;
+        window.addStumble = addStumble;
+        window.deleteStumble = deleteStumble;
+        window.editStumbleContent = editStumbleContent;
+        window.addIssueFile = addIssueFile;
+        window.deleteIssueFile = deleteIssueFile;
+        window.addStatusFile = addStatusFile;
+        window.deleteStatusFile = deleteStatusFile;
+        window.requireAdmin = requireAdmin;
+
     </script>
-    
-    <!-- 🔐 セキュリティ対応：Firebase credentials を config.js から読み込む -->
-    <!-- ⚠️ 重要：このスクリプトタグを削除しないでください -->
-    <!-- config.js がない場合のエラーメッセージを表示 -->
-    <script>
-        // config.js の読み込みを確認
-        if (typeof window.FIREBASE_CONFIG === 'undefined') {
-            console.warn('⚠️ 警告: config.js が読み込まれていないか見つかりません。');
-            console.warn('以下のファイルがプロジェクトフォルダにあることを確認してください：');
-            console.warn('  - config.js（Firebase credentials を含むファイル）');
-            console.warn('  - .gitignore（config.js を除外するファイル）');
-            document.body.innerHTML = '<h1 style="color: red; padding: 2rem;">❌ 設定ファイルが見つかりません</h1><p>このアプリケーションを実行するには、config.js ファイルが必要です。</p><p>管理者に連絡してください。</p>';
-        }
-    </script>
-    
-    <!-- 📄 Firebase credentials ファイルを読み込む -->
-    <!-- ⚠️ このファイルは GitHub に push されません (.gitignore で除外) -->
-    <script src="config.js"></script>
 </body>
 </html>
