@@ -1,11 +1,10 @@
+
 {
   "admins": {
-    "placeholder": true
+    "YOUR_UID": true
   },
   "members": {
-    "placeholder": true
+    "YOUR_UID": true
   },
-  "portfolioData": {
-    "categories": {}
-  }
+  "portfolioData": {}
 }
