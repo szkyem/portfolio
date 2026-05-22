@@ -142,9 +142,9 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js"></script>
+    <script async defer src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
+    <script async defer src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js"></script>
+    <script async defer src="https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js"></script>
     
     <script>
         // Firebase設定
@@ -158,36 +158,61 @@
             appId: "1:1060589674464:web:ad788f32bc2877f3d7d585"
         };
 
-        // Firebase初期化
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-
-        // ボタンのクリックイベントリスナー
-        document.getElementById('loginBtn').addEventListener('click', function() {
-            console.log('ログインボタンがクリックされました');
-            loginWithGoogle();
-        });
-
-        document.getElementById('logoutBtn').addEventListener('click', function() {
-            console.log('ログアウトボタンがクリックされました');
-            logout();
-        });
-
-        // ユーザー状態の監視
-        auth.onAuthStateChanged(function(user) {
-            console.log('ユーザー状態が変わりました:', user);
-            if (user) {
-                showLoggedInUI(user);
-            } else {
-                showLoginUI();
+        // Firebase SDKが読み込まれるまで待つ
+        function initFirebase() {
+            console.log('Firebase初期化開始');
+            try {
+                firebase.initializeApp(firebaseConfig);
+                window.auth = firebase.auth();
+                window.database = firebase.database();
+                console.log('Firebase初期化成功');
+                setupEventListeners();
+                setupAuthListener();
+            } catch(e) {
+                console.error('Firebase初期化エラー:', e);
+                setTimeout(initFirebase, 100);
             }
-        });
+        }
+
+        // イベントリスナーを設定
+        function setupEventListeners() {
+            const loginBtn = document.getElementById('loginBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            if (loginBtn) {
+                loginBtn.addEventListener('click', loginWithGoogle);
+                console.log('ログインボタンにリスナーを追加');
+            }
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', logout);
+                console.log('ログアウトボタンにリスナーを追加');
+            }
+        }
+
+        // 認証状態をリッスン
+        function setupAuthListener() {
+            if (!window.auth) return;
+            
+            window.auth.onAuthStateChanged(function(user) {
+                console.log('ユーザー状態:', user ? user.email : 'ログアウト');
+                if (user) {
+                    showLoggedInUI(user);
+                } else {
+                    showLoginUI();
+                }
+            });
+        }
 
         // Google でログイン
         function loginWithGoogle() {
-            console.log('loginWithGoogle が呼び出されました');
+            console.log('ログインボタンがクリックされました');
+            if (!window.auth) {
+                console.error('Firebase authが初期化されていません');
+                return;
+            }
+            
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
+            window.auth.signInWithPopup(provider)
                 .then(result => {
                     console.log('ログイン成功:', result.user.email);
                 })
@@ -199,8 +224,10 @@
 
         // ログアウト
         function logout() {
-            console.log('logout が呼び出されました');
-            auth.signOut()
+            console.log('ログアウトボタンがクリックされました');
+            if (!window.auth) return;
+            
+            window.auth.signOut()
                 .then(() => {
                     console.log('ログアウト成功');
                     showLoginUI();
@@ -247,7 +274,14 @@
             errorEl.classList.add('show');
         }
 
-        console.log('スクリプトの初期化が完了しました');
+        // ページ読み込み完了後にFirebaseを初期化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initFirebase);
+        } else {
+            initFirebase();
+        }
+
+        console.log('スクリプト読み込み完了');
     </script>
 </body>
 </html>
