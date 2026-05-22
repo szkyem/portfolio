@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -10,144 +10,225 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: "Segoe UI", "Yu Gothic", "Meiryo", sans-serif;
+            background: linear-gradient(135deg, #4f7cff 0%, #263a66 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 24px;
+            color: #1f2937;
         }
+
         .container {
-            background: white;
+            background: #ffffff;
             border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            padding: 40px;
-            width: 90%;
-            max-width: 500px;
+            box-shadow: 0 18px 50px rgba(31, 41, 55, 0.18);
+            padding: 36px;
+            width: 100%;
+            max-width: 560px;
         }
+
         .login-section {
             text-align: center;
         }
-        .login-section h1 {
-            margin-bottom: 30px;
-            color: #333;
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 12px;
         }
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background: #764ba2;
-        }
-        .logout-btn {
-            background: #e74c3c;
-            margin-left: 10px;
-        }
-        .logout-btn:hover {
-            background: #c0392b;
-        }
-        .toc-section {
-            display: none;
-        }
-        .toc-section.active {
-            display: block;
-        }
-        .toc-section h2 {
-            color: #333;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #667eea;
+
+        h2 {
+            color: #1f2937;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #4f7cff;
             padding-bottom: 10px;
         }
+
+        p {
+            line-height: 1.7;
+        }
+
+        button {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            cursor: wait;
+            opacity: 0.65;
+        }
+
+        .login-button {
+            width: 100%;
+            margin-top: 24px;
+        }
+
+        .logout-btn {
+            background: #eef2f7;
+            color: #1f2937;
+            white-space: nowrap;
+        }
+
+        .logout-btn:hover {
+            background: #dfe7f1;
+        }
+
+        .toc-section,
+        .user-info,
+        .content-area,
+        .error-message {
+            display: none;
+        }
+
+        .toc-section.active,
+        .user-info.active,
+        .content-area.active,
+        .error-message.show {
+            display: block;
+        }
+
+        .user-info {
+            background: #f3f6fb;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .user-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .user-label {
+            color: #667085;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .user-email {
+            font-weight: 700;
+            color: #1f2937;
+            word-break: break-word;
+        }
+
         .toc-list {
             list-style: none;
         }
+
         .toc-list li {
-            padding: 10px;
-            margin: 5px 0;
-            background: #f5f5f5;
-            border-left: 4px solid #667eea;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .toc-list li:hover {
-            background: #e8e8ff;
-            padding-left: 15px;
-        }
-        .user-info {
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        .user-info.active {
-            display: block;
-        }
-        .user-info p {
-            color: #666;
-            margin: 5px 0;
-        }
-        .user-email {
-            font-weight: bold;
-            color: #333;
-        }
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
             padding: 12px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            display: none;
+            margin: 8px 0;
+            background: #f8fafc;
+            border-left: 4px solid #4f7cff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
         }
-        .error-message.show {
-            display: block;
+
+        .toc-list li:hover {
+            background: #eef4ff;
+            transform: translateX(4px);
+        }
+
+        .content-area {
+            margin-top: 28px;
+            padding: 18px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .content-area h3 {
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            background: #fef3f2;
+            color: #b42318;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 520px) {
+            .container {
+                padding: 24px;
+            }
+
+            .user-row {
+                align-items: stretch;
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <main class="container">
         <div class="error-message" id="errorMessage"></div>
 
-        <div class="login-section" id="loginSection">
-            <h1>📚 My Contents</h1>
-            <p style="margin-bottom: 20px; color: #666;">ログインして目次を表示</p>
-            <button id="loginBtn">🔐 Google でログイン</button>
-        </div>
+        <section class="login-section" id="loginSection">
+            <h1>My Contents</h1>
+            <p>Googleアカウントでログインすると目次が表示されます。</p>
+            <button class="login-button" id="loginBtn" type="button">Googleでログイン</button>
+        </section>
 
-        <div class="toc-section" id="tocSection">
+        <section class="toc-section" id="tocSection" aria-live="polite">
             <div class="user-info" id="userInfo">
-                <p>ログイン中:</p>
-                <p class="user-email" id="userEmail"></p>
-                <button class="logout-btn" id="logoutBtn">ログアウト</button>
+                <div class="user-row">
+                    <div>
+                        <p class="user-label">ログイン中</p>
+                        <p class="user-email" id="userEmail"></p>
+                    </div>
+                    <button class="logout-btn" id="logoutBtn" type="button">ログアウト</button>
+                </div>
             </div>
 
-            <h2>📖 目次</h2>
+            <h2>目次</h2>
             <ul class="toc-list">
-                <li onclick="showContent('chapter1')">第1章: はじめに</li>
-                <li onclick="showContent('chapter2')">第2章: 基本概念</li>
-                <li onclick="showContent('chapter3')">第3章: 実装方法</li>
-                <li onclick="showContent('chapter4')">第4章: まとめ</li>
+                <li data-chapter="chapter1">第1章: はじめに</li>
+                <li data-chapter="chapter2">第2章: 基本概念</li>
+                <li data-chapter="chapter3">第3章: 実装方法</li>
+                <li data-chapter="chapter4">第4章: まとめ</li>
             </ul>
 
-            <div id="contentArea" style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 5px; display: none;">
+            <div class="content-area" id="contentArea">
                 <div id="contentDisplay"></div>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
-    <script async defer src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
-    <script async defer src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js"></script>
-    <script async defer src="https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js"></script>
-    
-    <script>
-        // Firebase設定
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import {
+            getAuth,
+            GoogleAuthProvider,
+            onAuthStateChanged,
+            signInWithPopup,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import {
+            getDatabase,
+            ref,
+            serverTimestamp,
+            set
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyC9vWK1o5flljBwYVurntMcjU-WLy3UenQ",
             authDomain: "portfolio-24691.firebaseapp.com",
@@ -158,130 +239,126 @@
             appId: "1:1060589674464:web:ad788f32bc2877f3d7d585"
         };
 
-        // Firebase SDKが読み込まれるまで待つ
-        function initFirebase() {
-            console.log('Firebase初期化開始');
+        const contents = {
+            chapter1: {
+                title: "第1章: はじめに",
+                text: "これはFirebaseログイン確認用のシンプルなサンプルです。"
+            },
+            chapter2: {
+                title: "第2章: 基本概念",
+                text: "コードはGitHubに保存し、ログイン情報などのデータはFirebaseに保存します。"
+            },
+            chapter3: {
+                title: "第3章: 実装方法",
+                text: "Firebase AuthenticationでGoogleログインし、Realtime Databaseへログイン記録を書き込みます。"
+            },
+            chapter4: {
+                title: "第4章: まとめ",
+                text: "この形を土台に、目次や本文データをFirebaseから読み込む構造へ広げられます。"
+            }
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+        const provider = new GoogleAuthProvider();
+
+        const errorMessage = document.getElementById("errorMessage");
+        const loginSection = document.getElementById("loginSection");
+        const tocSection = document.getElementById("tocSection");
+        const userInfo = document.getElementById("userInfo");
+        const userEmail = document.getElementById("userEmail");
+        const loginBtn = document.getElementById("loginBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const contentArea = document.getElementById("contentArea");
+        const contentDisplay = document.getElementById("contentDisplay");
+
+        loginBtn.addEventListener("click", async () => {
+            clearError();
+            loginBtn.disabled = true;
+
             try {
-                firebase.initializeApp(firebaseConfig);
-                window.auth = firebase.auth();
-                window.database = firebase.database();
-                console.log('Firebase初期化成功');
-                setupEventListeners();
-                setupAuthListener();
-            } catch(e) {
-                console.error('Firebase初期化エラー:', e);
-                setTimeout(initFirebase, 100);
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                showError(toJapaneseError(error));
+                console.error(error);
+            } finally {
+                loginBtn.disabled = false;
             }
+        });
+
+        logoutBtn.addEventListener("click", async () => {
+            clearError();
+            await signOut(auth);
+        });
+
+        document.querySelectorAll("[data-chapter]").forEach((item) => {
+            item.addEventListener("click", () => showContent(item.dataset.chapter));
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                showLoginUI();
+                return;
+            }
+
+            showLoggedInUI(user);
+            await saveLoginRecord(user);
+        });
+
+        function showLoginUI() {
+            loginSection.style.display = "block";
+            tocSection.classList.remove("active");
+            userInfo.classList.remove("active");
+            contentArea.classList.remove("active");
         }
 
-        // イベントリスナーを設定
-        function setupEventListeners() {
-            const loginBtn = document.getElementById('loginBtn');
-            const logoutBtn = document.getElementById('logoutBtn');
-            
-            if (loginBtn) {
-                loginBtn.addEventListener('click', loginWithGoogle);
-                console.log('ログインボタンにリスナーを追加');
-            }
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', logout);
-                console.log('ログアウトボタンにリスナーを追加');
-            }
+        function showLoggedInUI(user) {
+            loginSection.style.display = "none";
+            tocSection.classList.add("active");
+            userInfo.classList.add("active");
+            userEmail.textContent = user.email || user.displayName || user.uid;
         }
 
-        // 認証状態をリッスン
-        function setupAuthListener() {
-            if (!window.auth) return;
-            
-            window.auth.onAuthStateChanged(function(user) {
-                console.log('ユーザー状態:', user ? user.email : 'ログアウト');
-                if (user) {
-                    showLoggedInUI(user);
-                } else {
-                    showLoginUI();
-                }
+        function showContent(chapterId) {
+            const content = contents[chapterId];
+            if (!content) return;
+
+            contentDisplay.innerHTML = `<h3>${content.title}</h3><p>${content.text}</p>`;
+            contentArea.classList.add("active");
+        }
+
+        async function saveLoginRecord(user) {
+            await set(ref(database, `loginUsers/${user.uid}`), {
+                uid: user.uid,
+                name: user.displayName || "",
+                email: user.email || "",
+                lastLoginAt: serverTimestamp()
             });
         }
 
-        // Google でログイン
-        function loginWithGoogle() {
-            console.log('ログインボタンがクリックされました');
-            if (!window.auth) {
-                console.error('Firebase authが初期化されていません');
-                return;
-            }
-            
-            const provider = new firebase.auth.GoogleAuthProvider();
-            window.auth.signInWithPopup(provider)
-                .then(result => {
-                    console.log('ログイン成功:', result.user.email);
-                })
-                .catch(error => {
-                    console.error('ログインエラー:', error);
-                    showError('ログインエラー: ' + error.message);
-                });
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add("show");
         }
 
-        // ログアウト
-        function logout() {
-            console.log('ログアウトボタンがクリックされました');
-            if (!window.auth) return;
-            
-            window.auth.signOut()
-                .then(() => {
-                    console.log('ログアウト成功');
-                    showLoginUI();
-                })
-                .catch(error => {
-                    console.error('ログアウトエラー:', error);
-                });
+        function clearError() {
+            errorMessage.textContent = "";
+            errorMessage.classList.remove("show");
         }
 
-        // UI表示: ログイン前
-        function showLoginUI() {
-            document.getElementById('loginSection').style.display = 'block';
-            document.getElementById('tocSection').classList.remove('active');
-        }
-
-        // UI表示: ログイン後
-        function showLoggedInUI(user) {
-            document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('tocSection').classList.add('active');
-            document.getElementById('userInfo').classList.add('active');
-            document.getElementById('userEmail').textContent = user.email;
-        }
-
-        // コンテンツ表示
-        function showContent(chapterId) {
-            const contents = {
-                chapter1: { title: '第1章: はじめに', text: 'これはサンプルコンテンツです。Firebase に実際のコンテンツを保管できます。' },
-                chapter2: { title: '第2章: 基本概念', text: 'GitHub と Firebase を連携させることで、コードは GitHub、データは Firebase で管理できます。' },
-                chapter3: { title: '第3章: 実装方法', text: 'このデモでは Google 認証を使用しています。他の認証方法も利用可能です。' },
-                chapter4: { title: '第4章: まとめ', text: 'さらに詳しい情報は Firebase 公式ドキュメントを参照してください。' }
+        function toJapaneseError(error) {
+            const code = error?.code || "unknown";
+            const messages = {
+                "auth/unauthorized-domain": "このドメインがFirebase Authenticationの承認済みドメインに入っていません。Firebase ConsoleでAuthorized domainsを確認してください。",
+                "auth/popup-blocked": "ブラウザがログイン用ポップアップをブロックしています。ポップアップを許可して再試行してください。",
+                "auth/popup-closed-by-user": "ログイン画面が閉じられました。もう一度ログインしてください。",
+                "auth/operation-not-allowed": "Firebase ConsoleのAuthenticationでGoogleログインが有効になっていません。",
+                "auth/invalid-api-key": "Firebase設定のapiKeyが正しくありません。"
             };
 
-            const content = contents[chapterId];
-            if (content) {
-                document.getElementById('contentDisplay').innerHTML = `<h3>${content.title}</h3><p>${content.text}</p>`;
-                document.getElementById('contentArea').style.display = 'block';
-            }
+            return messages[code] || `ログインできませんでした。エラーコード: ${code}`;
         }
-
-        // エラー表示
-        function showError(message) {
-            const errorEl = document.getElementById('errorMessage');
-            errorEl.textContent = message;
-            errorEl.classList.add('show');
-        }
-
-        // ページ読み込み完了後にFirebaseを初期化
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initFirebase);
-        } else {
-            initFirebase();
-        }
-
-        console.log('スクリプト読み込み完了');
     </script>
 </body>
 </html>
