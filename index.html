@@ -575,6 +575,10 @@
             renderCategories();
         }
 
+        // グローバルスコープで使えるように公開
+        window.addCategory = addCategory;
+        window.deleteCategory = deleteCategory;
+
         function showProjects(catId) {
             curr.category = catId;
             curr.project = null;
@@ -1335,6 +1339,38 @@
 
             return messages[code] || `ログインできませんでした。エラーコード: ${code}`;
         }
+
+        // すべての関数をグローバルに公開
+        window.initPortfolio = initPortfolio;
+        window.saveData = saveData;
+        window.loadData = loadData;
+        window.renderCategories = renderCategories;
+        window.goHome = goHome;
+        window.showProjects = showProjects;
+        window.showItems = showItems;
+        window.switchTab = switchTab;
+        window.addPhase = addPhase;
+        window.deletePhase = deletePhase;
+        window.addTask = addTask;
+        window.deleteTask = deleteTask;
+        window.addStumble = addStumble;
+        window.deleteStumble = deleteStumble;
+        window.addStatusMilestone = addStatusMilestone;
+        window.deleteStatusMilestone = deleteStatusMilestone;
+        window.addProject = addProject;
+        window.deleteProject = deleteProject;
+        window.addItem = addItem;
+        window.deleteItem = deleteItem;
+        window.addCategory = addCategory;
+        window.deleteCategory = deleteCategory;
+        window.deleteIssueFile = deleteIssueFile;
+        window.deleteStatusFile = deleteStatusFile;
+        window.showFile = showFile;
+        window.closeModal = closeModal;
+        window.exportJSON = exportJSON;
+        window.importJSON = importJSON;
+        window.editCategoryIcon = editCategoryIcon;
+        window.editCategoryName = editCategoryName;
     </script>
 </body>
 </html>
