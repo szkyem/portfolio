@@ -3,24 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Portfolio</title>
+    <title>Portfolio - Firebase Login</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f8f6; color: #000; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem; }
-        header { margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 1px solid #d0d0d0; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
-        h1 { font-size: 32px; font-weight: 600; margin-bottom: 0.5rem; }
-        .subtitle { font-size: 14px; color: #666; }
-        .auth-box { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-        .auth-btn { background: #1976D2; color: white; border: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 600; }
-        .auth-btn.logout { background: #666; }
-        .auth-info { font-size: 12px; color: #555; }
-        .role-badge { display: inline-block; padding: 0.3rem 0.6rem; border-radius: 999px; font-size: 11px; font-weight: 600; }
-        .role-admin { background: #E3F2FD; color: #1565C0; }
-        .role-member { background: #E8F5E9; color: #2E7D32; }
-        .breadcrumb { display: flex; gap: 0.5rem; margin-bottom: 2rem; font-size: 13px; color: #999; align-items: center; flex-wrap: wrap; }
-        .breadcrumb button { background: none; border: none; color: #1D9E75; cursor: pointer; font-size: 13px; padding: 0; }
-        .breadcrumb button:hover { text-decoration: underline; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", "Yu Gothic", "Meiryo", sans-serif;
+            background: linear-gradient(135deg, #4f7cff 0%, #263a66 100%);
+            min-height: 100vh;
+            padding: 24px;
+            color: #1f2937;
+        }
+
+        .container {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 18px 50px rgba(31, 41, 55, 0.18);
+            padding: 36px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .login-container {
+            min-height: calc(100vh - 48px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-panel {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 18px 50px rgba(31, 41, 55, 0.18);
+            padding: 36px;
+            width: 100%;
+            max-width: 560px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+
+        p {
+            line-height: 1.7;
+        }
+
+        button {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            cursor: wait;
+            opacity: 0.65;
+        }
+
+        .login-button {
+            width: 100%;
+            margin-top: 24px;
+        }
+
+        .logout-btn {
+            background: #eef2f7;
+            color: #1f2937;
+            white-space: nowrap;
+        }
+
+        .logout-btn:hover {
+            background: #dfe7f1;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .error-message {
+            display: none;
+            background: #fef3f2;
+            color: #b42318;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .user-info {
+            background: #f3f6fb;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .user-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .user-label {
+            color: #667085;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .user-email {
+            font-weight: 700;
+            color: #1f2937;
+            word-break: break-word;
+        }
+
+        .portfolio-frame {
+            width: 100%;
+            min-height: 82vh;
+            border: 0;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .card { background: white; border-radius: 10px; padding: 1.25rem; border: 1px solid #d0d0d0; cursor: pointer; transition: all 0.3s; }
         .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
@@ -87,72 +209,178 @@
         .modal-close { position: absolute; top: 1rem; right: 1rem; background: #FF6B6B; color: white; border: none; padding: 0.5rem 1rem; cursor: pointer; border-radius: 4px; }
         .warning { background: #FFFACD; border: 1px solid #DAA520; color: #B8860B; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; font-size: 13px; }
         .notice { background: #E3F2FD; border: 1px solid #90CAF9; color: #1565C0; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 13px; }
-        .error { background: #FFEBEE; border: 1px solid #FFCDD2; color: #C62828; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 13px; }
-        .hidden { display: none !important; }
-        @media (max-width: 768px) { .panels { grid-template-columns: 1fr; } h1 { font-size: 24px; } .detail-title { font-size: 20px; } }
+        .breadcrumb { display: flex; gap: 0.5rem; margin-bottom: 2rem; font-size: 13px; color: #999; align-items: center; flex-wrap: wrap; }
+        .breadcrumb button { background: none; border: none; color: #1D9E75; cursor: pointer; font-size: 13px; padding: 0; }
+        .breadcrumb button:hover { text-decoration: underline; }
+        @media (max-width: 768px) { .panels { grid-template-columns: 1fr; } }
+
+        @media (max-width: 520px) {
+            body {
+                padding: 16px;
+            }
+
+            .container,
+            .login-panel {
+                padding: 24px;
+            }
+
+            .user-row {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .logout-btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div>
-                <h1>📚 My Portfolio</h1>
-                <p class="subtitle">プロジェクト進捗管理システム</p>
+    <main>
+        <section class="login-container" id="loginSection">
+            <div class="login-panel">
+                <div class="error-message" id="errorMessage"></div>
+
+                <h1>My Contents</h1>
+                <p>Googleアカウントでログインするとポートフォリオが表示されます。</p>
+                <button class="login-button" id="loginBtn" type="button">Googleでログイン</button>
             </div>
-        </header>
+        </section>
 
-        <div id="messageArea"></div>
+        <section class="container hidden" id="portfolioSection" aria-live="polite">
+            <div class="error-message" id="appErrorMessage"></div>
 
-        <div id="homeView">
-            <div class="breadcrumb" id="breadcrumb">
-                <button onclick="goHome()">ホーム</button>
+            <div class="user-info" id="userInfo">
+                <div class="user-row">
+                    <div>
+                        <p class="user-label">ログイン中</p>
+                        <p class="user-email" id="userEmail"></p>
+                    </div>
+                    <button class="logout-btn" id="logoutBtn" type="button">ログアウト</button>
+                </div>
             </div>
-            <div id="storageWarning"></div>
-            <div id="categoriesGrid" class="grid"></div>
-            <button class="add-btn" onclick="addCategory()">+ 大項目を追加</button>
-        </div>
 
-        <div id="projectsView" style="display: none;">
-            <div class="breadcrumb" id="breadcrumb"></div>
-            <div class="detail-view" id="projectsDetail"></div>
-            <div id="projectsGrid" class="grid"></div>
-            <button class="add-btn" onclick="addProject()">+ 中項目を追加</button>
-        </div>
+            <div id="portfolioContent" style="max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem;">
+                <div class="breadcrumb" id="breadcrumb">
+                    <button onclick="goHome()">ホーム</button>
+                </div>
+                <div id="storageWarning"></div>
+                <div id="categoriesGrid" class="grid"></div>
+                <button class="add-btn" onclick="addCategory()">+ 大項目を追加</button>
 
-        <div id="itemsView" style="display: none;">
-            <div class="breadcrumb" id="breadcrumb"></div>
-            <div class="detail-view" id="itemsDetail"></div>
-        </div>
-    </div>
+                <div id="projectsView" style="display: none;">
+                    <div class="detail-view" id="projectsDetail"></div>
+                    <div id="projectsGrid" class="grid"></div>
+                    <button class="add-btn" onclick="addProject()">+ 中項目を追加</button>
+                </div>
 
-    <div id="fileModal" class="modal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal()">閉じる</button>
-            <div id="filePreview"></div>
-        </div>
-    </div>
+                <div id="itemsView" style="display: none;">
+                    <div class="detail-view" id="itemsDetail"></div>
+                </div>
+            </div>
+
+            <div id="fileModal" class="modal">
+                <div class="modal-content">
+                    <button class="modal-close" onclick="closeModal()">閉じる</button>
+                    <div id="filePreview"></div>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import {
+            getAuth,
+            GoogleAuthProvider,
+            onAuthStateChanged,
+            signInWithPopup,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import {
+            getDatabase,
+            ref,
+            serverTimestamp,
+            set
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
         const firebaseConfig = {
-            apiKey: "AIzaSyB2CH410X3yk4YTJWFC2JyEWScXZn77Z3I",
-            authDomain: "my-portfolio-d3560.firebaseapp.com",
-            databaseURL: "https://my-portfolio-d3560-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "my-portfolio-d3560",
-            storageBucket: "my-portfolio-d3560.firebasestorage.app",
-            messagingSenderId: "293517847141",
-            appId: "1:293517847141:web:bec173cf345b47cf91f48c"
+  apiKey: "AIzaSyB2CH410X3yk4YTJWFC2JyEWScXZn77Z3I",
+  authDomain: "my-portfolio-d3560.firebaseapp.com",
+  databaseURL: "https://my-portfolio-d3560-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "my-portfolio-d3560",
+  storageBucket: "my-portfolio-d3560.firebasestorage.app",
+  messagingSenderId: "293517847141",
+  appId: "1:293517847141:web:bec173cf345b47cf91f48c"
         };
 
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+        const provider = new GoogleAuthProvider();
+
+        const loginSection = document.getElementById("loginSection");
+        const portfolioSection = document.getElementById("portfolioSection");
+        const userEmail = document.getElementById("userEmail");
+        const loginBtn = document.getElementById("loginBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const errorMessage = document.getElementById("errorMessage");
+        const appErrorMessage = document.getElementById("appErrorMessage");
+
+        loginBtn.addEventListener("click", async () => {
+            clearError();
+            loginBtn.disabled = true;
+
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                showError(toJapaneseError(error));
+                console.error(error);
+            } finally {
+                loginBtn.disabled = false;
+            }
+        });
+
+        logoutBtn.addEventListener("click", async () => {
+            clearError();
+            await signOut(auth);
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                showLoginUI();
+                return;
+            }
+
+            showPortfolioUI(user);
+
+            await set(ref(database, `loginUsers/${user.uid}`), {
+                uid: user.uid,
+                name: user.displayName || "",
+                email: user.email || "",
+                lastLoginAt: serverTimestamp()
+            });
+        });
+
+        function showLoginUI() {
+            loginSection.classList.remove("hidden");
+            portfolioSection.classList.add("hidden");
+        }
+
+        function showPortfolioUI(user) {
+            userEmail.textContent = user.email || user.displayName || user.uid;
+            loginSection.classList.add("hidden");
+            portfolioSection.classList.remove("hidden");
+            initPortfolio();
+        }
+
+        // Portfolio機能
         const data = { categories: [] };
         let curr = { category: null, project: null, item: null };
         let activeTabIndex = 0;
 
-        function showMessage(message, type = 'notice') {
-            document.getElementById('messageArea').innerHTML = `<div class="${type}">${escapeHtml(message)}</div>`;
-        }
-
-        function clearMessage() {
-            document.getElementById('messageArea').innerHTML = '';
+        function initPortfolio() {
+            loadData();
         }
 
         function escapeHtml(str) {
@@ -214,7 +442,7 @@
 
         function goHome() {
             curr = { category: null, project: null, item: null };
-            document.getElementById('homeView').style.display = 'block';
+            document.getElementById('categoriesGrid').parentElement.style.display = 'block';
             document.getElementById('projectsView').style.display = 'none';
             document.getElementById('itemsView').style.display = 'none';
             renderCategories();
@@ -298,7 +526,7 @@
             const cat = data.categories.find(c => c.id === catId);
             if (!cat) return;
 
-            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('categoriesGrid').parentElement.style.display = 'none';
             document.getElementById('projectsView').style.display = 'block';
             document.getElementById('itemsView').style.display = 'none';
             document.getElementById('projectsDetail').innerHTML =
@@ -393,7 +621,7 @@
             const proj = cat?.projects?.find(p => p.id === projId);
             if (!proj) return;
 
-            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('categoriesGrid').parentElement.style.display = 'none';
             document.getElementById('projectsView').style.display = 'none';
             document.getElementById('itemsView').style.display = 'block';
 
@@ -504,7 +732,7 @@
             const item = getItem();
             if (!item) return;
 
-            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('categoriesGrid').parentElement.style.display = 'none';
             document.getElementById('projectsView').style.display = 'none';
             document.getElementById('itemsView').style.display = 'block';
 
@@ -980,50 +1208,32 @@
 
         window.addEventListener('popstate', goHome);
 
-        // グローバル関数を window に公開
-        window.showFile = showFile;
-        window.closeModal = closeModal;
-        window.goHome = goHome;
-        window.showProjects = showProjects;
-        window.showItems = showItems;
-        window.showItemDetail = showItemDetail;
-        window.editCategoryIcon = editCategoryIcon;
-        window.editCategoryName = editCategoryName;
-        window.addCategory = addCategory;
-        window.deleteCategory = deleteCategory;
-        window.editCategoryNameFromProjects = editCategoryNameFromProjects;
-        window.editProjectName = editProjectName;
-        window.addProject = addProject;
-        window.deleteProject = deleteProject;
-        window.editProjectNameFromItems = editProjectNameFromItems;
-        window.addItem = addItem;
-        window.editItemName = editItemName;
-        window.deleteItem = deleteItem;
-        window.editItemNameFromDetail = editItemNameFromDetail;
-        window.switchTab = switchTab;
-        window.editPhaseTitle = editPhaseTitle;
-        window.editTask = editTask;
-        window.addPhase = addPhase;
-        window.deletePhase = deletePhase;
-        window.addTask = addTask;
-        window.toggleTask = toggleTask;
-        window.deleteTask = deleteTask;
-        window.updateRoadmapComment = updateRoadmapComment;
-        window.updateIssueComment = updateIssueComment;
-        window.updateStatusComment = updateStatusComment;
-        window.addStatusMilestone = addStatusMilestone;
-        window.deleteStatusMilestone = deleteStatusMilestone;
-        window.editStatusMilestone = editStatusMilestone;
-        window.addStumble = addStumble;
-        window.deleteStumble = deleteStumble;
-        window.editStumbleContent = editStumbleContent;
-        window.addIssueFile = addIssueFile;
-        window.deleteIssueFile = deleteIssueFile;
-        window.addStatusFile = addStatusFile;
-        window.deleteStatusFile = deleteStatusFile;
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add("show");
+            appErrorMessage.textContent = message;
+            appErrorMessage.classList.add("show");
+        }
 
-        // 初期化
-        loadData();
+        function clearError() {
+            errorMessage.textContent = "";
+            errorMessage.classList.remove("show");
+            appErrorMessage.textContent = "";
+            appErrorMessage.classList.remove("show");
+        }
+
+        function toJapaneseError(error) {
+            const code = error?.code || "unknown";
+            const messages = {
+                "auth/unauthorized-domain": "このドメインがFirebase Authenticationの承認済みドメインに入っていません。Firebase ConsoleでAuthorized domainsを確認してください。",
+                "auth/popup-blocked": "ブラウザがログイン用ポップアップをブロックしています。ポップアップを許可して再試行してください。",
+                "auth/popup-closed-by-user": "ログイン画面が閉じられました。もう一度ログインしてください。",
+                "auth/operation-not-allowed": "Firebase ConsoleのAuthenticationでGoogleログインが有効になっていません。",
+                "auth/invalid-api-key": "Firebase設定のapiKeyが正しくありません。"
+            };
+
+            return messages[code] || `ログインできませんでした。エラーコード: ${code}`;
+        }
     </script>
 </body>
 </html>
