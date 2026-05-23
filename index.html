@@ -204,10 +204,9 @@ auth.onAuthStateChanged(async user => {
     updateAuthInfo('認証確認中…');
 
     try {
-        const memberSnap = await get(ref(database, 'members/' + user.uid));
-                const adminSnap = await get(ref(database, 'admins/' + user.uid));
-            ref(database, 'members/' + user.uid),
-            ref(database, 'admins/' + user.uid)
+        const [memberSnap, adminSnap] = await Promise.all([
+            db.ref('members/' + user.uid).once('value'),
+            db.ref('admins/' + user.uid).once('value')
         ]);
 
                 isMember = memberSnap.val() === true;
@@ -304,16 +303,16 @@ auth.onAuthStateChanged(async user => {
             if (percent > 80) {
                 document.getElementById('storageWarning').innerHTML = `
                     <div class="warning">
-                        ⚠️ データサイズが大きくなっています。(${kb}KB / 5MB の目安)
+                        ⚠️ ストレージが ${percent}% 満杯です。(${kb}KB / 5MB)
                     </div>
                 `;
             } else {
                 document.getElementById('storageWarning').innerHTML = '';
             }
 
-            localStorage.setItem('portfolioDataBackup', json);
-
-            // Firebase に保存（ユーザーのデータ領域）
+            localStorage.setItem('portfolioData', json);
+            
+            // Firebase に保存
             if (currentUser) {
                 try {
                     await set(ref(database, `users/${currentUser.uid}/portfolioData`), data);
@@ -325,7 +324,7 @@ auth.onAuthStateChanged(async user => {
         }
 
 async function loadData() {
-    if (!currentUser || !isMember) return;
+    if (!currentUser) return;
 
     try {
         const snapshot = await get(ref(database, `users/${currentUser.uid}/portfolioData`));
@@ -373,7 +372,7 @@ async function loadData() {
                     }))
             }));
         } else {
-            const saved = localStorage.getItem('portfolioDataBackup');
+            const saved = localStorage.getItem('portfolioData');
             if (saved) Object.assign(data, JSON.parse(saved));
         }
 
@@ -381,7 +380,7 @@ async function loadData() {
         goHome();
     } catch (error) {
         console.error('Firebase 読み込みエラー:', error);
-        const saved = localStorage.getItem('portfolioDataBackup');
+        const saved = localStorage.getItem('portfolioData');
         if (saved) Object.assign(data, JSON.parse(saved));
         checkStorage();
         goHome();
@@ -1037,21 +1036,6 @@ function renderCategories() {
         }
 
         window.addEventListener('popstate', goHome);
-
-        // グローバル関数を window に公開
-        window.loginWithGoogle = function() {
-            const loginBtn = document.getElementById('loginBtn');
-            loginBtn.disabled = true;
-            auth.signInWithPopup(provider)
-                .catch(error => {
-                    console.error('ログインエラー:', error);
-                    loginBtn.disabled = false;
-                });
-        }
-
-        window.logout = function() {
-            auth.signOut();
-        }
     </script>
 </body>
 </html>
