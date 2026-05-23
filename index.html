@@ -389,6 +389,7 @@
 
         // Portfolio機能（グローバル変数）
         window.data = { categories: [] };
+        let data = window.data;  // ローカルスコープでも使えるように
         let curr = { category: null, project: null, item: null };
         let activeTabIndex = 0;
 
@@ -407,7 +408,6 @@
         }
 
         async function saveData() {
-            const data = window.data;  // グローバル変数を参照
             const json = JSON.stringify(data);
             const size = new Blob([json]).size;
             const kb = (size / 1024).toFixed(2);
