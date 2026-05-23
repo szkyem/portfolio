@@ -298,44 +298,34 @@
         </section>
     </main>
 
+    <!-- Firebase SDK を CDN から読み込む -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+
     <script>
-        // モジュール外でグローバル変数を定義
+        // グローバル変数を定義
         window.data = { categories: [] };
         window.currentUser = null;
         window.isMember = false;
         window.isAdmin = false;
-    </script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-        import {
-            getAuth,
-            GoogleAuthProvider,
-            onAuthStateChanged,
-            signInWithPopup,
-            signOut
-        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-        import {
-            getDatabase,
-            ref,
-            serverTimestamp,
-            set
-        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
-
+        // Firebase 設定
         const firebaseConfig = {
-  apiKey: "AIzaSyB2CH410X3yk4YTJWFC2JyEWScXZn77Z3I",
-  authDomain: "my-portfolio-d3560.firebaseapp.com",
-  databaseURL: "https://my-portfolio-d3560-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "my-portfolio-d3560",
-  storageBucket: "my-portfolio-d3560.firebasestorage.app",
-  messagingSenderId: "293517847141",
-  appId: "1:293517847141:web:bec173cf345b47cf91f48c"
+            apiKey: "AIzaSyB2CH410X3yk4YTJWFC2JyEWScXZn77Z3I",
+            authDomain: "my-portfolio-d3560.firebaseapp.com",
+            databaseURL: "https://my-portfolio-d3560-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "my-portfolio-d3560",
+            storageBucket: "my-portfolio-d3560.firebasestorage.app",
+            messagingSenderId: "293517847141",
+            appId: "1:293517847141:web:bec173cf345b47cf91f48c"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const database = getDatabase(app);
-        const provider = new GoogleAuthProvider();
+        // Firebase 初期化
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const provider = new firebase.auth.GoogleAuthProvider();
 
         const loginSection = document.getElementById("loginSection");
         const portfolioSection = document.getElementById("portfolioSection");
@@ -364,7 +354,7 @@
             await signOut(auth);
         });
 
-        onAuthStateChanged(auth, async (user) => {
+        auth.onAuthStateChanged(async (user) => {
             if (!user) {
                 showLoginUI();
                 return;
@@ -372,11 +362,11 @@
 
             showPortfolioUI(user);
 
-            await set(ref(database, `loginUsers/${user.uid}`), {
+            await database.ref(`loginUsers/${user.uid}`).set({
                 uid: user.uid,
                 name: user.displayName || "",
                 email: user.email || "",
-                lastLoginAt: serverTimestamp()
+                lastLoginAt: firebase.database.ServerValue.TIMESTAMP
             });
         });
 
@@ -385,10 +375,8 @@
             portfolioSection.classList.add("hidden");
         }
 
-        let currentUser = null;
-
         function showPortfolioUI(user) {
-            currentUser = user;
+            window.currentUser = user;
             userEmail.textContent = user.email || user.displayName || user.uid;
             loginSection.classList.add("hidden");
             portfolioSection.classList.remove("hidden");
@@ -432,9 +420,9 @@
             localStorage.setItem('portfolioData', json);
             
             // Firebase に保存（重要！）
-            if (currentUser) {
+            if (window.currentUser) {
                 try {
-                    await set(ref(database, `users/${currentUser.uid}/portfolioData`), data);
+                    await database.ref(`users/${window.currentUser.uid}/portfolioData`).set(window.data);
                     console.log('Firebase 保存成功');
                 } catch (error) {
                     console.error('Firebase 保存エラー:', error);
