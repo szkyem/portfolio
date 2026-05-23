@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio - Firebase Login</title>
+    <title>仕事用メモ - Firebase</title>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js"></script>
     <style>
         * {
             margin: 0;
@@ -11,1354 +14,1628 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1a2744;
+            --bg-tertiary: #2a3f5f;
+            --text-primary: #f0f4f8;
+            --text-secondary: #cbd5e1;
+            --accent: #3b82f6;
+            --accent-light: #60a5fa;
+            --accent-dark: #1e40af;
+            --border: #334155;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
         body {
-            font-family: "Segoe UI", "Yu Gothic", "Meiryo", sans-serif;
-            background: linear-gradient(135deg, #4f7cff 0%, #263a66 100%);
-            min-height: 100vh;
-            padding: 24px;
-            color: #1f2937;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow: hidden;
         }
 
-        .container {
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 18px 50px rgba(31, 41, 55, 0.18);
-            padding: 36px;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .login-container {
-            min-height: calc(100vh - 48px);
+        /* ===== Login View ===== */
+        .login-view {
             display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1a2744 100%);
+        }
+
+        .login-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-panel h1 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-panel p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 14px;
+        }
+
+        .google-btn {
+            width: 100%;
+            padding: 12px 24px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+        }
+
+        .google-btn:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .error-msg {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
+        /* ===== Main App ===== */
+        .app-container {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .app-container.active {
+            display: flex;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+            font-size: 13px;
+        }
+
+        .user-email {
+            color: var(--text-secondary);
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            gap: 0;
+            overflow: hidden;
+        }
+
+        /* ===== Sidebar ===== */
+        .sidebar {
+            width: 320px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .categories-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .categories-header h2 {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .add-btn-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .add-btn-icon:hover {
+            background: var(--accent-light);
+        }
+
+        .categories-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .category-item {
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .category-item:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .category-item.active {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .category-name {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .delete-mini-btn {
+            width: 24px;
+            height: 24px;
+            background: rgba(239, 68, 68, 0.2);
+            border: none;
+            border-radius: 4px;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .delete-mini-btn:hover {
+            background: rgba(239, 68, 68, 0.4);
+        }
+
+        /* ===== Main Content ===== */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+            overflow: hidden;
+        }
+
+        .breadcrumb {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb-item {
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: none;
+            margin: 0 0.5rem;
+        }
+
+        .breadcrumb-item:hover {
+            color: var(--accent-light);
+        }
+
+        .view-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .home-view h2 {
+            font-size: 20px;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        /* ===== Projects Grid ===== */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .project-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .project-card:hover {
+            border-color: var(--accent);
+            background: var(--bg-tertiary);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
+        }
+
+        .project-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .project-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .project-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .mini-btn {
+            width: 28px;
+            height: 28px;
+            background: rgba(59, 130, 246, 0.2);
+            border: none;
+            border-radius: 4px;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .mini-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .mini-btn.danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .mini-btn.danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* ===== Items Grid ===== */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .item-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-card:hover {
+            border-color: var(--accent);
+            background: var(--bg-tertiary);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
+        }
+
+        .item-name {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .item-preview {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.4;
+            min-height: 2.4em;
+        }
+
+        .item-actions {
+            margin-top: auto;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        /* ===== Editable ===== */
+        .editable {
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .editable:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        /* ===== Detail View ===== */
+        .detail-view {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .detail-header {
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* ===== Tabs ===== */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.25rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            color: var(--accent);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ===== Roadmap ===== */
+        .roadmap-container {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .phase-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            justify-content: space-between;
+        }
+
+        .phase-title {
+            font-size: 16px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .phase-badge {
+            background: var(--accent);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .phase-delete {
+            width: 28px;
+            height: 28px;
+            background: rgba(239, 68, 68, 0.2);
+            border: none;
+            border-radius: 4px;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .tasks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .task-item {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .task-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--success);
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        .task-text.completed {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+
+        .task-delete {
+            width: 24px;
+            height: 24px;
+            background: rgba(239, 68, 68, 0.2);
+            border: none;
+            border-radius: 4px;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .add-task-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-task-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .add-phase-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .add-phase-btn:hover {
+            background: #059669;
+        }
+
+        /* ===== Comments Section ===== */
+        .comments-section {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comments-list {
+            flex: 1;
+            margin-bottom: 1.5rem;
+        }
+
+        .comment-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .comment-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .comment-content {
+            font-size: 14px;
+            color: var(--text-primary);
+            line-height: 1.5;
+            word-break: break-word;
+            white-space: pre-wrap;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .comment-content:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .comment-delete {
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .comment-input {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--bg-tertiary);
+        }
+
+        .comment-submit {
+            padding: 0.75rem 1.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            height: fit-content;
+        }
+
+        .comment-submit:hover {
+            background: var(--accent-light);
+        }
+
+        /* ===== Inline Editing ===== */
+        .edit-input {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            border-radius: 6px;
+            padding: 0.5rem;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .edit-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        /* ===== Modal ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
             align-items: center;
             justify-content: center;
         }
 
-        .login-panel {
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 18px 50px rgba(31, 41, 55, 0.18);
-            padding: 36px;
-            width: 100%;
-            max-width: 560px;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 28px;
-            margin-bottom: 12px;
-        }
-
-        p {
-            line-height: 1.7;
-        }
-
-        button {
-            background: #2563eb;
-            color: #ffffff;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 700;
-            transition: background 0.2s ease;
-        }
-
-        button:hover {
-            background: #1d4ed8;
-        }
-
-        button:disabled {
-            cursor: wait;
-            opacity: 0.65;
-        }
-
-        .login-button {
-            width: 100%;
-            margin-top: 24px;
-        }
-
-        .logout-btn {
-            background: #eef2f7;
-            color: #1f2937;
-            white-space: nowrap;
-        }
-
-        .logout-btn:hover {
-            background: #dfe7f1;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .error-message {
-            display: none;
-            background: #fef3f2;
-            color: #b42318;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 18px;
-            line-height: 1.6;
-        }
-
-        .error-message.show {
-            display: block;
-        }
-
-        .user-info {
-            background: #f3f6fb;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 24px;
-        }
-
-        .user-row {
+        .modal.active {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
         }
 
-        .user-label {
-            color: #667085;
-            font-size: 13px;
-            margin-bottom: 4px;
-        }
-
-        .user-email {
-            font-weight: 700;
-            color: #1f2937;
-            word-break: break-word;
-        }
-
-        .portfolio-frame {
-            width: 100%;
-            min-height: 82vh;
-            border: 0;
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
             border-radius: 8px;
-            background: #ffffff;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
         }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .card { background: white; border-radius: 10px; padding: 1.25rem; border: 1px solid #d0d0d0; cursor: pointer; transition: all 0.3s; }
-        .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .card.teal { background: #E1F5EE; border: 1px solid #9FE1CB; }
-        .card.slate { background: #F1EFE8; border: 1px solid #B4B2A9; }
-        .card-icon { font-size: 32px; margin-bottom: 0.75rem; }
-        .card-title { font-weight: 600; color: #000; font-size: 14px; margin-bottom: 0.5rem; }
-        .progress-bar { background: rgba(29,158,117,0.2); border-radius: 3px; height: 6px; overflow: hidden; margin-top: 0.5rem; }
-        .progress-fill { background: #1D9E75; height: 100%; }
-        .add-btn { background: #1976D2; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600; margin-top: 2rem; }
-        .add-btn:hover { background: #1565C0; }
-        .delete-btn { background: #FF6B6B; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 10px; cursor: pointer; }
-        .detail-view { background: white; border-radius: 12px; padding: 2rem; border: 0.5px solid #d0d0d0; margin-bottom: 2rem; }
-        .detail-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e0e0e0; }
-        .detail-title { font-size: 28px; font-weight: 600; color: #000; margin: 0; }
-        .tabs { display: flex; gap: 0; margin-bottom: 2rem; border-bottom: 1px solid #e0e0e0; overflow-x: auto; }
-        .tab-btn { padding: 0.75rem 1.5rem; background: transparent; border: none; color: #999; font-weight: 600; cursor: pointer; font-size: 13px; white-space: nowrap; border-bottom: 3px solid transparent; }
-        .tab-btn.active { color: #000; border-bottom-color: #1D9E75; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .phase { padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem; border: 2px solid #1976D2; background: linear-gradient(135deg, rgba(25,118,210,0.1), rgba(25,118,210,0.05)); }
-        .phase-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
-        .phase-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; background: #1976D2; }
-        .phase-title { font-size: 14px; font-weight: 600; flex: 1; }
-        .phase-tasks { margin-left: 2.5rem; }
-        .task-item { background: white; border-radius: 6px; padding: 0.75rem; margin-bottom: 0.75rem; border: 1px solid #E0E0E0; display: flex; align-items: center; gap: 0.75rem; }
-        .task-text { flex: 1; font-size: 12px; color: #555; }
-        .task-text.done { text-decoration: line-through; color: #999; }
-        .add-task-btn { background: #1976D2; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; margin-top: 0.75rem; }
-        .add-phase-btn { background: #388E3C; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600; margin-top: 1.5rem; }
-        .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
-        .panel { padding: 1.25rem; border-radius: 8px; border: 1px solid; }
-        .panel.progress { background: #E3F2FD; border-color: #90CAF9; }
-        .panel.progress .title { color: #1565C0; }
-        .panel.issues { background: #FFF3E0; border-color: #FFCC80; }
-        .panel.issues .title { color: #E65100; }
-        .panel-title { font-weight: 600; font-size: 12px; margin-bottom: 0.75rem; }
-        input[type="text"] { width: 100%; padding: 0.5rem; border: 1px solid #FFCC80; border-radius: 4px; font-size: 12px; margin-bottom: 0.75rem; font-family: inherit; }
-        textarea { width: 100%; height: 80px; padding: 0.75rem; border: 1px solid #FFCC80; border-radius: 4px; font-size: 12px; font-family: inherit; resize: vertical; margin-bottom: 0.75rem; }
-        .stumble-btn { background: #FF6B6B; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: 600; flex: 1; }
-        .stumble-timeline { position: relative; padding-left: 1.5rem; }
-        .stumble-line { position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #e0e0e0; }
-        .stumble-entry { margin-bottom: 2rem; position: relative; }
-        .stumble-dot { position: absolute; left: -8px; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; background: #FF6B6B; top: 0; }
-        .stumble-card { padding: 1rem; border-radius: 8px; border: 1px solid #FFCDD2; background: #FFEBEE; }
-        .stumble-content { white-space: pre-wrap; word-wrap: break-word; }
-        .milestone-timeline { position: relative; padding-left: 1.5rem; }
-        .milestone-line { position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #e0e0e0; }
-        .milestone-entry { margin-bottom: 2rem; position: relative; cursor: default; }
-        .milestone-dot { position: absolute; left: -8px; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; background: #4CAF50; top: 0; }
-        .milestone-card { padding: 1rem; border-radius: 8px; border: 1px solid #C8E6C9; background: #F1F8E9; transition: all 0.2s; }
-        .milestone-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .milestone-date { font-size: 11px; color: #999; margin-bottom: 0.5rem; }
-        .milestone-content { font-size: 13px; color: #333; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; padding: 0.75rem; background: white; border-radius: 4px; margin-bottom: 0.5rem; }
-        .milestone-content.editable { cursor: pointer; background: #FFFACD; }
-        .milestone-content.editable:hover { background: #FFEB99; }
-        .milestone-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
-        .milestone-delete { background: #FF6B6B; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 3px; font-size: 10px; cursor: pointer; }
-        .file-link { color: #1D9E75; cursor: pointer; text-decoration: underline; font-size: 12px; }
-        .file-link:hover { color: #0a6c4a; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.show { display: flex; }
-        .modal-content { background: white; border-radius: 8px; padding: 2rem; max-width: 80vw; max-height: 80vh; overflow: auto; position: relative; }
-        .modal-close { position: absolute; top: 1rem; right: 1rem; background: #FF6B6B; color: white; border: none; padding: 0.5rem 1rem; cursor: pointer; border-radius: 4px; }
-        .warning { background: #FFFACD; border: 1px solid #DAA520; color: #B8860B; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; font-size: 13px; }
-        .notice { background: #E3F2FD; border: 1px solid #90CAF9; color: #1565C0; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 13px; }
-        .breadcrumb { display: flex; gap: 0.5rem; margin-bottom: 2rem; font-size: 13px; color: #999; align-items: center; flex-wrap: wrap; }
-        .breadcrumb button { background: none; border: none; color: #1D9E75; cursor: pointer; font-size: 13px; padding: 0; }
-        .breadcrumb button:hover { text-decoration: underline; }
-        @media (max-width: 768px) { .panels { grid-template-columns: 1fr; } }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
 
-        @media (max-width: 520px) {
-            body {
-                padding: 16px;
-            }
+        .modal-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+            margin-bottom: 1.5rem;
+        }
 
-            .container,
-            .login-panel {
-                padding: 24px;
-            }
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+        }
 
-            .user-row {
-                align-items: stretch;
+        .modal-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-btn.primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .modal-btn.primary:hover {
+            background: var(--accent-light);
+        }
+
+        .modal-btn.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .modal-btn.secondary:hover {
+            background: var(--border);
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .content {
                 flex-direction: column;
             }
 
-            .logout-btn {
+            .sidebar {
                 width: 100%;
+                max-height: 200px;
+            }
+
+            .projects-grid,
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .modal-content {
+                width: 95%;
             }
         }
     </style>
 </head>
 <body>
-    <main>
-        <section class="login-container" id="loginSection">
-            <div class="login-panel">
-                <div class="error-message" id="errorMessage"></div>
+    <!-- Login View -->
+    <div class="login-view" id="loginView">
+        <div class="login-panel">
+            <h1>📋 仕事用メモ</h1>
+            <p>Googleアカウントでログインして、プロジェクト管理を始めましょう</p>
+            <div class="error-msg" id="loginError"></div>
+            <button class="google-btn" id="googleLoginBtn">Google でログイン</button>
+        </div>
+    </div>
 
-                <h1>My Contents</h1>
-                <p>Googleアカウントでログインするとポートフォリオが表示されます。</p>
-                <button class="login-button" id="loginBtn" type="button">Googleでログイン</button>
+    <!-- Main App -->
+    <div class="app-container" id="appContainer">
+        <!-- Header -->
+        <div class="header">
+            <h1>📋 仕事用メモ</h1>
+            <div class="user-section">
+                <div class="user-info">
+                    <div class="user-email" id="userEmail"></div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">ログアウト</button>
             </div>
-        </section>
+        </div>
 
-        <section class="container hidden" id="portfolioSection" aria-live="polite">
-            <div class="error-message" id="appErrorMessage"></div>
-
-            <div class="user-info" id="userInfo">
-                <div class="user-row">
-                    <div>
-                        <p class="user-label">ログイン中</p>
-                        <p class="user-email" id="userEmail"></p>
-                    </div>
-                    <button class="logout-btn" id="logoutBtn" type="button">ログアウト</button>
+        <!-- Content -->
+        <div class="content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="categories-header">
+                    <h2>カテゴリー</h2>
+                    <button class="add-btn-icon" id="addCategoryBtn" title="カテゴリー追加">+</button>
                 </div>
-            </div>
-
-            <div id="portfolioContent" style="max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem;">
-                <div class="breadcrumb" id="breadcrumb">
-                    <button onclick="goHome()">ホーム</button>
-                </div>
-                <div id="storageWarning"></div>
-                
-                <div style="margin-bottom: 2rem; padding: 1rem; background: #E3F2FD; border-radius: 8px; border: 1px solid #90CAF9;">
-                    <h4 style="margin-bottom: 0.75rem; color: #1565C0;">📥 データのインポート・エクスポート</h4>
-                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                        <input type="file" id="jsonImportInput" accept=".json" style="padding: 0.5rem; border: 1px solid #90CAF9; border-radius: 4px; flex: 1; min-width: 200px;">
-                        <button onclick="importJSON()" style="background: #1976D2; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 600;">インポート</button>
-                        <button onclick="exportJSON()" style="background: #388E3C; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 600;">エクスポート</button>
-                    </div>
-                </div>
-                
-                <div id="categoriesGrid" class="grid"></div>
-                <button class="add-btn" onclick="addCategory()">+ 大項目を追加</button>
-
-                <div id="projectsView" style="display: none;">
-                    <div class="detail-view" id="projectsDetail"></div>
-                    <div id="projectsGrid" class="grid"></div>
-                    <button class="add-btn" onclick="addProject()">+ 中項目を追加</button>
-                </div>
-
-                <div id="itemsView" style="display: none;">
-                    <div class="detail-view" id="itemsDetail"></div>
-                </div>
+                <div class="categories-list" id="categoriesList"></div>
             </div>
 
-            <div id="fileModal" class="modal">
-                <div class="modal-content">
-                    <button class="modal-close" onclick="closeModal()">閉じる</button>
-                    <div id="filePreview"></div>
-                </div>
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="breadcrumb" id="breadcrumb"></div>
+                <div class="view-container" id="viewContainer"></div>
             </div>
-        </section>
-    </main>
+        </div>
+    </div>
 
-    <!-- Firebase SDK を CDN から読み込む -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+    <!-- Add Item Modal -->
+    <div class="modal" id="addItemModal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">新規作成</div>
+            <input type="text" class="modal-input" id="itemNameInput" placeholder="名前を入力">
+            <div class="modal-buttons">
+                <button class="modal-btn primary" id="confirmAddBtn">作成</button>
+                <button class="modal-btn secondary" id="cancelAddBtn">キャンセル</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // グローバル変数を定義
-        window.data = { categories: [] };
-        window.currentUser = null;
-        window.isMember = false;
-        window.isAdmin = false;
-
-        // Firebase 設定
+        // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyB2CH410X3yk4YTJWFC2JyEWScXZn77Z3I",
-            authDomain: "my-portfolio-d3560.firebaseapp.com",
-            databaseURL: "https://my-portfolio-d3560-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "my-portfolio-d3560",
-            storageBucket: "my-portfolio-d3560.firebasestorage.app",
-            messagingSenderId: "293517847141",
-            appId: "1:293517847141:web:bec173cf345b47cf91f48c"
+ apiKey: "AIzaSyB2CH410X3yk4YTJWFC2JyEWScXZn77Z3I",
+  authDomain: "my-portfolio-d3560.firebaseapp.com",
+  databaseURL: "https://my-portfolio-d3560-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "my-portfolio-d3560",
+  storageBucket: "my-portfolio-d3560.firebasestorage.app",
+  messagingSenderId: "293517847141",
+  appId: "1:293517847141:web:bec173cf345b47cf91f48c
         };
 
-        // Firebase 初期化
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const database = firebase.database();
-        const provider = new firebase.auth.GoogleAuthProvider();
+        const db = firebase.firestore();
 
-        const loginSection = document.getElementById("loginSection");
-        const portfolioSection = document.getElementById("portfolioSection");
-        const userEmail = document.getElementById("userEmail");
-        const loginBtn = document.getElementById("loginBtn");
-        const logoutBtn = document.getElementById("logoutBtn");
-        const errorMessage = document.getElementById("errorMessage");
-        const appErrorMessage = document.getElementById("appErrorMessage");
+        // State
+        let currentUser = null;
+        let currentCategory = null;
+        let currentProject = null;
+        let currentItem = null;
+        let allData = { categories: [] };
 
-        loginBtn.addEventListener("click", async () => {
-            clearError();
-            loginBtn.disabled = true;
-
+        // ===== Auth =====
+        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
             try {
+                const provider = new firebase.auth.GoogleAuthProvider();
                 await auth.signInWithPopup(provider);
             } catch (error) {
-                showError(toJapaneseError(error));
-                console.error(error);
-            } finally {
-                loginBtn.disabled = false;
+                showLoginError(error.message);
             }
         });
 
-        logoutBtn.addEventListener("click", async () => {
-            clearError();
-            await auth.signOut();
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await auth.signOut();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
         });
 
         auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                showLoginUI();
-                return;
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginView').style.display = 'none';
+                document.getElementById('appContainer').classList.add('active');
+                document.getElementById('userEmail').textContent = user.email;
+                await loadData();
+                renderHome();
+            } else {
+                currentUser = null;
+                document.getElementById('loginView').style.display = 'flex';
+                document.getElementById('appContainer').classList.remove('active');
             }
-
-            await showPortfolioUI(user);
-
-            await database.ref(`loginUsers/${user.uid}`).set({
-                uid: user.uid,
-                name: user.displayName || "",
-                email: user.email || "",
-                lastLoginAt: firebase.database.ServerValue.TIMESTAMP
-            });
         });
 
-        function showLoginUI() {
-            loginSection.classList.remove("hidden");
-            portfolioSection.classList.add("hidden");
-        }
-
-        async function showPortfolioUI(user) {
-            window.currentUser = user;
-            userEmail.textContent = user.email || user.displayName || user.uid;
-            loginSection.classList.add("hidden");
-            portfolioSection.classList.remove("hidden");
-            await initPortfolio();
-        }
-
-        // Portfolio機能（window.data を直接使用）
-        let curr = { category: null, project: null, item: null };
-        let activeTabIndex = 0;
-
-        async function initPortfolio() {
-            await loadData();
-        }
-
-        function escapeHtml(str) {
-            return String(str).replace(/[&<>"']/g, s => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            }[s]));
+        // ===== Data Management =====
+        async function loadData() {
+            try {
+                const doc = await db.collection('users').doc(currentUser.uid).get();
+                if (doc.exists) {
+                    allData = doc.data();
+                } else {
+                    allData = { categories: [] };
+                }
+                renderCategories();
+            } catch (error) {
+                console.error('Load error:', error);
+            }
         }
 
         async function saveData() {
-            const json = JSON.stringify(data);
-            const size = new Blob([json]).size;
-            const kb = (size / 1024).toFixed(2);
-            const percent = ((size / (5 * 1024 * 1024)) * 100).toFixed(1);
-
-            if (percent > 80) {
-                document.getElementById('storageWarning').innerHTML = `
-                    <div class="warning">
-                        ⚠️ ストレージが ${percent}% 満杯です。(${kb}KB / 5MB)
-                    </div>
-                `;
-            } else {
-                document.getElementById('storageWarning').innerHTML = '';
-            }
-
-            localStorage.setItem('portfolioData', json);
-            
-            // Firebase に保存（重要！）
-            if (window.currentUser) {
-                try {
-                    await database.ref(`users/${window.currentUser.uid}/portfolioData`).set(window.data);
-                    console.log('Firebase 保存成功');
-                } catch (error) {
-                    console.error('Firebase 保存エラー:', error);
-                }
-            }
-        }
-
-        async function loadData() {
-            if (!window.currentUser) return;
-
             try {
-                const snapshot = await database.ref(`users/${window.currentUser.uid}/portfolioData`).once('value');
-                
-                if (snapshot.exists()) {
-                    const remoteData = snapshot.val();
-                    window.data.categories = remoteData.categories || [];
-                    console.log('Firebase から読み込み成功');
-                } else {
-                    // Firebase にデータがない場合、localStorage から読み込み
-                    const saved = localStorage.getItem('portfolioData');
-                    if (saved) {
-                        try {
-                            const parsed = JSON.parse(saved);
-                            window.data.categories = parsed.categories || [];
-                        } catch (error) {
-                            console.error('localStorage 読み込みエラー:', error);
-                        }
-                    }
-                }
+                await db.collection('users').doc(currentUser.uid).set(allData);
             } catch (error) {
-                console.error('Firebase 読み込みエラー:', error);
-                // エラーの場合、localStorage から読み込み
-                const saved = localStorage.getItem('portfolioData');
-                if (saved) {
-                    try {
-                        const parsed = JSON.parse(saved);
-                        window.data.categories = parsed.categories || [];
-                    } catch (error) {
-                        console.error('localStorage 読み込みエラー:', error);
-                    }
-                }
+                console.error('Save error:', error);
             }
-            goHome();
         }
 
-        function closeModal() {
-            document.getElementById('fileModal').classList.remove('show');
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
         }
 
-        function showFile(fileName, fileData) {
-            const modal = document.getElementById('fileModal');
-            const preview = document.getElementById('filePreview');
-
-            if (fileData.startsWith('data:image')) {
-                preview.innerHTML = `<img src="${fileData}" style="max-width: 100%; max-height: 60vh; border-radius: 4px;">`;
-            } else if (fileData.startsWith('data:application/pdf')) {
-                preview.innerHTML = `<p>${escapeHtml(fileName)}</p><embed src="${fileData}" type="application/pdf" style="width: 100%; height: 60vh; border-radius: 4px;">`;
-            } else {
-                preview.innerHTML = `<p style="font-weight: 600; margin-bottom: 1rem;">${escapeHtml(fileName)}</p><a href="${fileData}" download="${escapeHtml(fileName)}" style="display: inline-block; background: #1976D2; color: white; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none;">ダウンロード</a>`;
-            }
-            modal.classList.add('show');
-        }
-
-        function goHome() {
-            curr = { category: null, project: null, item: null };
-            document.getElementById('categoriesGrid').parentElement.style.display = 'block';
-            document.getElementById('projectsView').style.display = 'none';
-            document.getElementById('itemsView').style.display = 'none';
-            renderCategories();
-            updateBreadcrumb();
-        }
-
+        // ===== Rendering =====
         function renderCategories() {
-            const grid = document.getElementById('categoriesGrid');
-            grid.innerHTML = '';
-
-            window.data.categories.forEach((cat, idx) => {
-                const card = document.createElement('div');
-                card.className = 'card ' + (idx % 2 === 0 ? 'teal' : 'slate');
-                card.onclick = () => window.showProjects(cat.id);
-
-                const total = cat.projects?.reduce((s, p) => s + p.items?.reduce((ss, i) => ss + i.phases?.reduce((sss, ph) => sss + ph.tasks?.length || 0, 0) || 0, 0) || 0, 0) || 0;
-                const done = cat.projects?.reduce((s, p) => s + p.items?.reduce((ss, i) => ss + i.phases?.reduce((sss, ph) => sss + ph.tasks?.filter(t => t.done)?.length || 0, 0) || 0, 0) || 0, 0) || 0;
-                const pct = total > 0 ? Math.round(done / total * 100) : 0;
-
-                card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; gap: 0.75rem;">
-                        <div ondblclick="event.stopPropagation(); editCategoryIcon(${idx})">
-                            <div class="card-icon">${escapeHtml(cat.icon || '📁')}</div>
-                        </div>
-                        <div style="flex: 1;">
-                            <div class="card-title" ondblclick="event.stopPropagation(); editCategoryName(${idx})">${escapeHtml(cat.name || '無題')}</div>
-                        </div>
-                        <button class="delete-btn" onclick="event.stopPropagation(); deleteCategory(${idx})">削除</button>
+            const html = allData.categories.map(cat => `
+                <div class="category-item ${currentCategory === cat.id ? 'active' : ''}" onclick="selectCategory('${cat.id}')">
+                    <span class="category-name">${escapeHtml(cat.name)}</span>
+                    <div class="category-actions">
+                        <button class="delete-mini-btn" onclick="event.stopPropagation(); deleteCategory('${cat.id}')" title="削除">×</button>
                     </div>
-                    <div style="margin-top: 1rem;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 11px;">
-                            <span>進捗</span><span style="font-weight: 600;">${pct}%</span>
-                        </div>
-                        <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
+                </div>
+            `).join('');
+            document.getElementById('categoriesList').innerHTML = html;
+        }
+
+        function renderHome() {
+            currentProject = null;
+            currentItem = null;
+            updateBreadcrumb();
+
+            let html = '<h2>カテゴリー</h2><div class="projects-grid">';
+            html += allData.categories.map(cat => `
+                <div class="project-card" onclick="selectCategory('${cat.id}')">
+                    <div>
+                        <div class="project-name">${escapeHtml(cat.name)}</div>
+                        <div class="project-count">${cat.projects?.length || 0} プロジェクト</div>
                     </div>
-                `;
-                grid.appendChild(card);
-            });
+                </div>
+            `).join('');
+            html += '</div>';
+
+            document.getElementById('viewContainer').innerHTML = html;
         }
 
-        function editCategoryIcon(idx) {
-            const newIcon = prompt('アイコン:', window.data.categories[idx]?.icon || '');
-            if (newIcon) {
-                window.data.categories[idx].icon = newIcon;
-                saveData();
-                renderCategories();
-            }
-        }
-
-        function editCategoryName(idx) {
-            const newName = prompt('大項目名:', window.data.categories[idx]?.name || '');
-            if (newName && newName.trim()) {
-                window.data.categories[idx].name = newName.trim();
-                saveData();
-                renderCategories();
-            }
-        }
-
-        function addCategory() {
-            const name = prompt('大項目名:');
-            if (!name) return;
-            const icon = prompt('アイコン (例:🔧):') || '📁';
-            window.data.categories.push({ id: 'c_' + Date.now(), name, icon, projects: [] });
-            saveData();
+        function selectCategory(catId) {
+            currentCategory = catId;
+            currentProject = null;
+            currentItem = null;
             renderCategories();
+            renderProjects();
         }
 
-        function deleteCategory(idx) {
-            if (!confirm('削除しますか？')) return;
-            window.data.categories.splice(idx, 1);
-            saveData();
-            renderCategories();
-        }
-
-        // グローバルスコープで使えるように公開
-        window.addCategory = addCategory;
-        window.deleteCategory = deleteCategory;
-
-        function showProjects(catId) {
-            curr.category = catId;
-            curr.project = null;
-            curr.item = null;
-            history.pushState({}, '');
-
-            const cat = window.data.categories.find(c => c.id === catId);
+        function renderProjects() {
+            const cat = allData.categories.find(c => c.id === currentCategory);
             if (!cat) return;
 
-            document.getElementById('categoriesGrid').parentElement.style.display = 'none';
-            document.getElementById('projectsView').style.display = 'block';
-            document.getElementById('itemsView').style.display = 'none';
-            document.getElementById('projectsDetail').innerHTML =
-                `<div class="detail-header"><h2 class="detail-title" ondblclick="event.stopPropagation(); editCategoryNameFromProjects()">${escapeHtml(cat.icon || '📁')} ${escapeHtml(cat.name || '無題')}</h2></div>`;
-
-            const grid = document.getElementById('projectsGrid');
-            grid.innerHTML = '';
-
-            (cat.projects || []).forEach((proj, pIdx) => {
-                const card = document.createElement('div');
-                card.className = 'card teal';
-                card.onclick = () => window.showItems(catId, proj.id);
-
-                let total = 0;
-                let done = 0;
-                (proj.items || []).forEach(item => {
-                    (item.phases || []).forEach(ph => {
-                        total += (ph.tasks || []).length;
-                        done += (ph.tasks || []).filter(t => t.done).length;
-                    });
-                });
-                const pct = total > 0 ? Math.round(done / total * 100) : 0;
-
-                card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; gap: 0.75rem;">
-                        <div style="flex: 1;">
-                            <strong ondblclick="event.stopPropagation(); editProjectName(${pIdx})" style="cursor: pointer;">${escapeHtml(proj.name || '無題')}</strong>
-                        </div>
-                        <button class="delete-btn" onclick="event.stopPropagation(); deleteProject(${pIdx})">削除</button>
-                    </div>
-                    <div style="margin-top: 0.5rem; font-size: 12px; color: #666;">小項目数: ${(proj.items || []).length}</div>
-                    <div style="margin-top: 0.75rem;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-size: 10px;">
-                            <span>進捗</span><span style="font-weight: 600;">${pct}%</span>
-                        </div>
-                        <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-
             updateBreadcrumb();
-        }
 
-        function editCategoryNameFromProjects() {
-            const cat = window.data.categories.find(c => c.id === curr.category);
-            const newName = prompt('大項目名:', cat?.name || '');
-            if (newName && newName.trim()) {
-                cat.name = newName.trim();
-                saveData();
-                showProjects(curr.category);
-            }
-        }
-
-        function editProjectName(pIdx) {
-            const cat = window.data.categories.find(c => c.id === curr.category);
-            const proj = cat?.projects?.[pIdx];
-            const newName = prompt('中項目名:', proj?.name || '');
-            if (newName && newName.trim()) {
-                proj.name = newName.trim();
-                saveData();
-                showProjects(curr.category);
-            }
-        }
-
-        function addProject() {
-            const name = prompt('中項目名:');
-            if (!name) return;
-
-            const cat = window.data.categories.find(c => c.id === curr.category);
-            if (!cat.projects) cat.projects = [];
-            cat.projects.push({ id: 'p_' + Date.now(), name, items: [] });
-            saveData();
-            showProjects(curr.category);
-        }
-
-        function deleteProject(pIdx) {
-            if (!confirm('削除しますか？')) return;
-            const cat = window.data.categories.find(c => c.id === curr.category);
-            cat.projects.splice(pIdx, 1);
-            saveData();
-            showProjects(curr.category);
-        }
-
-        function showItems(catId, projId) {
-            curr.category = catId;
-            curr.project = projId;
-            curr.item = null;
-            history.pushState({}, '');
-
-            const cat = window.data.categories.find(c => c.id === catId);
-            const proj = cat?.projects?.find(p => p.id === projId);
-            if (!proj) return;
-
-            document.getElementById('categoriesGrid').parentElement.style.display = 'none';
-            document.getElementById('projectsView').style.display = 'none';
-            document.getElementById('itemsView').style.display = 'block';
-
-            document.getElementById('itemsDetail').innerHTML = `
-                <div class="detail-header">
-                    <h2 class="detail-title" ondblclick="event.stopPropagation(); editProjectNameFromItems()">${escapeHtml(proj.name || '無題')}</h2>
-                </div>
-                <div id="itemsGrid" class="grid"></div>
-                <button class="add-btn" onclick="addItem()">+ 小項目を追加</button>
-            `;
-
-            const grid = document.getElementById('itemsGrid');
-            grid.innerHTML = '';
-
-            (proj.items || []).forEach((item, iIdx) => {
-                const card = document.createElement('div');
-                card.className = 'card slate';
-                card.onclick = () => window.showItemDetail(catId, projId, item.id);
-
-                const total = (item.phases || []).reduce((s, p) => s + (p.tasks || []).length, 0);
-                const done = (item.phases || []).reduce((s, p) => s + (p.tasks || []).filter(t => t.done).length, 0);
-                const pct = total > 0 ? Math.round(done / total * 100) : 0;
-
-                card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; gap: 0.75rem;">
-                        <div style="flex: 1;">
-                            <strong ondblclick="event.stopPropagation(); editItemName(${iIdx})" style="cursor: pointer;">${escapeHtml(item.icon || '📝')} ${escapeHtml(item.name || '無題')}</strong>
-                        </div>
-                        <button class="delete-btn" onclick="event.stopPropagation(); deleteItem(${iIdx})">削除</button>
-                    </div>
-                    <div style="margin-top: 0.5rem; font-size: 12px; color: #666;">Phase数: ${(item.phases || []).length}</div>
-                    <div style="margin-top: 0.75rem;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-size: 10px;">
-                            <span>進捗</span><span style="font-weight: 600;">${pct}%</span>
-                        </div>
-                        <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-
-            updateBreadcrumb();
-        }
-
-        function editProjectNameFromItems() {
-            const cat = window.data.categories.find(c => c.id === curr.category);
-            const proj = cat?.projects?.find(p => p.id === curr.project);
-            const newName = prompt('中項目名:', proj?.name || '');
-            if (newName && newName.trim()) {
-                proj.name = newName.trim();
-                saveData();
-                showItems(curr.category, curr.project);
-            }
-        }
-
-        function addItem() {
-            const name = prompt('小項目名:');
-            if (!name) return;
-            const icon = prompt('アイコン:') || '📝';
-
-            const cat = window.data.categories.find(c => c.id === curr.category);
-            const proj = cat?.projects?.find(p => p.id === curr.project);
-            if (!proj.items) proj.items = [];
-
-            proj.items.push({
-                id: 'i_' + Date.now(),
-                name,
-                icon,
-                phases: [{ number: 1, title: 'Phase 1', tasks: [] }],
-                stumbles: [],
-                issueComment: '',
-                statusComment: '',
-                issueAttachments: [],
-                statusAttachments: [],
-                statusMilestones: [],
-                roadmapComment: ''
-            });
-
-            saveData();
-            showItems(curr.category, curr.project);
-        }
-
-        function editItemName(iIdx) {
-            const cat = window.data.categories.find(c => c.id === curr.category);
-            const proj = cat?.projects?.find(p => p.id === curr.project);
-            const item = proj?.items?.[iIdx];
-            const newName = prompt('小項目名:', item?.name || '');
-            if (newName && newName.trim()) {
-                item.name = newName.trim();
-                saveData();
-                showItems(curr.category, curr.project);
-            }
-        }
-
-        function deleteItem(iIdx) {
-            if (!confirm('削除しますか？')) return;
-            const cat = window.data.categories.find(c => c.id === curr.category);
-            const proj = cat?.projects?.find(p => p.id === curr.project);
-            proj.items.splice(iIdx, 1);
-            saveData();
-            showItems(curr.category, curr.project);
-        }
-
-        function showItemDetail(catId, projId, itemId) {
-            curr = { category: catId, project: projId, item: itemId };
-            history.pushState({}, '');
-
-            const item = getItem();
-            if (!item) return;
-
-            document.getElementById('categoriesGrid').parentElement.style.display = 'none';
-            document.getElementById('projectsView').style.display = 'none';
-            document.getElementById('itemsView').style.display = 'block';
-
-            document.getElementById('itemsDetail').innerHTML = `
-                <div class="detail-header">
-                    <h2 class="detail-title" ondblclick="event.stopPropagation(); editItemNameFromDetail()">${escapeHtml(item.icon || '📝')} ${escapeHtml(item.name || '無題')}</h2>
-                </div>
-                <div id="itemTabs"></div>
-            `;
-
-            renderTabs(item);
-            updateBreadcrumb();
-        }
-
-        function editItemNameFromDetail() {
-            const item = getItem();
-            const newName = prompt('小項目名:', item?.name || '');
-            if (newName && newName.trim()) {
-                item.name = newName.trim();
-                saveData();
-                showItemDetail(curr.category, curr.project, curr.item);
-            }
-        }
-
-        function getItem() {
-            const cat = window.data.categories.find(c => c.id === curr.category);
-            if (!cat) return null;
-            const proj = cat.projects?.find(p => p.id === curr.project);
-            if (!proj) return null;
-            return proj.items?.find(i => i.id === curr.item) || null;
-        }
-
-        function renderTabs(item) {
-            const container = document.getElementById('itemTabs');
-            container.innerHTML = '';
-
-            const tabsDiv = document.createElement('div');
-            tabsDiv.className = 'tabs';
-            tabsDiv.innerHTML = `
-                <button class="tab-btn active" onclick="switchTab(event, 0)">🗺️ ロードマップ</button>
-                <button class="tab-btn" onclick="switchTab(event, 1)">⚠️ 課題</button>
-                <button class="tab-btn" onclick="switchTab(event, 2)">📊 現状</button>
-                <button class="tab-btn" onclick="switchTab(event, 3)">🚨 躓き履歴</button>
-            `;
-            container.appendChild(tabsDiv);
-
-            const tabContents = document.createElement('div');
-
-            let roadmapHTML = '';
-            (item.phases || []).forEach((ph, phIdx) => {
-                const done = (ph.tasks || []).filter(t => t.done).length;
-                const total = (ph.tasks || []).length;
-                const pct = total > 0 ? Math.round(done / total * 100) : 0;
-
-                roadmapHTML += `
-                    <div class="phase">
-                        <div class="phase-header">
-                            <div class="phase-num">${ph.number}</div>
-                            <div class="phase-title" ondblclick="event.stopPropagation(); editPhaseTitle(${phIdx})">${escapeHtml(ph.title || '')}</div>
-                            <span style="background: white; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 10px;">
-                                ${done === total && total > 0 ? '✓ 完了' : done > 0 ? `進行中 ${pct}%` : '計画中'}
-                            </span>
-                            <button class="delete-btn" onclick="deletePhase(${phIdx})">削除</button>
-                        </div>
-                        <div class="phase-tasks">
-                            ${(ph.tasks || []).map((t, tIdx) => `
-                                <div class="task-item">
-                                    <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${phIdx}, ${tIdx})">
-                                    <div class="task-text ${t.done ? 'done' : ''}" ondblclick="event.stopPropagation(); editTask(${phIdx}, ${tIdx})">${escapeHtml(t.text || '')}</div>
-                                    <button class="delete-btn" onclick="deleteTask(${phIdx}, ${tIdx})">削除</button>
-                                </div>
-                            `).join('')}
-                            <button class="add-task-btn" onclick="addTask(${phIdx})">+ タスク</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            roadmapHTML += `<button class="add-phase-btn" onclick="addPhase()">+ Phase 追加</button>`;
-
-            const total = (item.phases || []).reduce((s, p) => s + (p.tasks || []).length, 0);
-            const done = (item.phases || []).reduce((s, p) => s + (p.tasks || []).filter(t => t.done).length, 0);
-            const pct = total > 0 ? Math.round(done / total * 100) : 0;
-
-            roadmapHTML += `
-                <div class="panels">
-                    <div class="panel progress">
-                        <div class="panel-title title">📊 進捗</div>
-                        <div style="background: white; padding: 1rem; border-radius: 6px; border: 1px solid #90CAF9;">
-                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 0.5rem;">${pct}%</div>
-                            <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
-                            <div style="margin-top: 0.75rem; font-size: 11px; color: #666;">完了: ${done} / 計画中: ${total - done}</div>
-                        </div>
-                    </div>
-                    <div class="panel issues">
-                        <div class="panel-title title">⚠️ 課題・解決策</div>
-                        <div style="background: white; padding: 1rem; border-radius: 6px;">
-                            <div style="margin-bottom: 0.75rem;">
-                                <label style="font-size: 11px; font-weight: 600; color: #E65100;">コメント</label>
-                                <textarea onchange="updateRoadmapComment(this.value)">${escapeHtml(item.roadmapComment || '')}</textarea>
-                            </div>
-                            <button class="stumble-btn" onclick="addStumble()" style="width: 100%;">躓き履歴へ</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            let issuesHTML = `
-                <div style="background: white; padding: 1.5rem; border-radius: 8px;">
-                    <h4 style="margin-bottom: 1rem; color: #E65100; font-weight: 600;">📝 コメント</h4>
-                    <textarea onchange="updateIssueComment(this.value)">${escapeHtml(item.issueComment || '')}</textarea>
-                    <h4 style="margin-bottom: 1rem; color: #E65100; font-weight: 600;">📎 ファイル・資料</h4>
-                    <div id="issueFiles" style="margin-bottom: 1rem;">
-                        ${(item.issueAttachments || []).map((f, idx) => `
-                            <div style="background: #FFF3E0; padding: 0.75rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; border-radius: 4px;">
-                                <span class="file-link" onclick="showFile('${String(f.name).replace(/'/g, "\\'")}', '${String(f.data).replace(/'/g, "\\'")}')" title="クリックでプレビュー">📄 ${escapeHtml(f.name)}</span>
-                                <button class="delete-btn" onclick="deleteIssueFile(${idx})">削除</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <input type="file" onchange="addIssueFile(event)" style="width: 100%; padding: 0.5rem; border: 1px solid #FFCC80; border-radius: 4px; cursor: pointer;">
-                </div>
-            `;
-
-            let statusHTML = `
-                <div style="background: white; padding: 1.5rem; border-radius: 8px;">
-                    <h4 style="margin-bottom: 1rem; color: #1565C0; font-weight: 600;">📝 コメント</h4>
-                    <textarea onchange="updateStatusComment(this.value)">${escapeHtml(item.statusComment || '')}</textarea>
-                    <h4 style="margin-bottom: 1rem; color: #1565C0; font-weight: 600;">📎 ファイル・資料</h4>
-                    <div id="statusFiles" style="margin-bottom: 1rem;">
-                        ${(item.statusAttachments || []).map((f, idx) => `
-                            <div style="background: #E3F2FD; padding: 0.75rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; border-radius: 4px;">
-                                <span class="file-link" onclick="showFile('${String(f.name).replace(/'/g, "\\'")}', '${String(f.data).replace(/'/g, "\\'")}')" title="クリックでプレビュー">📄 ${escapeHtml(f.name)}</span>
-                                <button class="delete-btn" onclick="deleteStatusFile(${idx})">削除</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <input type="file" onchange="addStatusFile(event)" style="width: 100%; padding: 0.5rem; border: 1px solid #90CAF9; border-radius: 4px; cursor: pointer;">
-                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e0e0e0;">
-                        <button class="add-task-btn" onclick="addStatusMilestone()" style="background: #4CAF50; width: 100%; margin-bottom: 1rem;">✓ マイルストーンに追加</button>
-                        <h4 style="margin-bottom: 1rem; color: #2E7D32; font-weight: 600;">📌 マイルストーン</h4>
-                        ${renderStatusMilestones(item)}
-                    </div>
-                </div>
-            `;
-
-            let stumblesHTML = '<div class="stumble-timeline"><div class="stumble-line"></div>';
-            if ((item.stumbles || []).length > 0) {
-                (item.stumbles || []).forEach((s, idx) => {
-                    stumblesHTML += `
-                        <div class="stumble-entry">
-                            <div class="stumble-dot"></div>
-                            <div class="stumble-card" style="display: flex; justify-content: space-between; gap: 0.75rem;">
-                                <div style="flex: 1;">
-                                    <p style="font-weight: 600; margin-bottom: 0.5rem;">${escapeHtml(s.date || '')}</p>
-                                    <p class="stumble-content" style="font-size: 12px; cursor: pointer; user-select: none;" ondblclick="event.stopPropagation(); editStumbleContent(${idx})">${escapeHtml(s.content || '')}</p>
-                                </div>
-                                <button class="delete-btn" onclick="deleteStumble(${idx})">削除</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                stumblesHTML += '<p style="text-align: center; color: #999; padding: 2rem;">躓き履歴なし</p>';
-            }
-            stumblesHTML += '</div>';
-
-            tabContents.innerHTML = `
-                <div class="tab-content ${activeTabIndex === 0 ? 'active' : ''}">${roadmapHTML}</div>
-                <div class="tab-content ${activeTabIndex === 1 ? 'active' : ''}">${issuesHTML}</div>
-                <div class="tab-content ${activeTabIndex === 2 ? 'active' : ''}">${statusHTML}</div>
-                <div class="tab-content ${activeTabIndex === 3 ? 'active' : ''}">${stumblesHTML}</div>
-            `;
-
-            const allTabBtns = document.querySelectorAll('.tab-btn');
-            allTabBtns.forEach((btn, idx) => {
-                if (idx === activeTabIndex) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-
-            container.appendChild(tabContents);
-        }
-
-        function switchTab(e, idx) {
-            activeTabIndex = idx;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            document.querySelectorAll('.tab-content').forEach((c, i) => c.classList.toggle('active', i === idx));
-        }
-
-        function editPhaseTitle(idx) {
-            const item = getItem();
-            const newTitle = prompt('Phase タイトル:', item.phases[idx]?.title || '');
-            if (newTitle && newTitle.trim()) {
-                item.phases[idx].title = newTitle.trim();
-                saveData();
-                renderTabs(item);
-            }
-        }
-
-        function editTask(phIdx, tIdx) {
-            const item = getItem();
-            const newText = prompt('タスク:', item.phases?.[phIdx]?.tasks?.[tIdx]?.text || '');
-            if (newText && newText.trim()) {
-                item.phases[phIdx].tasks[tIdx].text = newText.trim();
-                saveData();
-                renderTabs(item);
-            }
-        }
-
-        function addPhase() {
-            const title = prompt('Phase タイトル:');
-            if (!title) return;
-            const item = getItem();
-            if (!item.phases) item.phases = [];
-            item.phases.push({ number: item.phases.length + 1, title, tasks: [] });
-            saveData();
-            renderTabs(item);
-        }
-
-        function deletePhase(idx) {
-            if (!confirm('削除?')) return;
-            getItem().phases.splice(idx, 1);
-            saveData();
-            renderTabs(getItem());
-        }
-
-        function addTask(phIdx) {
-            const text = prompt('タスク:');
-            if (!text) return;
-            const item = getItem();
-            if (!item.phases[phIdx].tasks) item.phases[phIdx].tasks = [];
-            item.phases[phIdx].tasks.push({ text, done: false });
-            saveData();
-            renderTabs(item);
-        }
-
-        function toggleTask(phIdx, tIdx) {
-            const item = getItem();
-            item.phases[phIdx].tasks[tIdx].done = !item.phases[phIdx].tasks[tIdx].done;
-            saveData();
-            renderTabs(item);
-        }
-
-        function deleteTask(phIdx, tIdx) {
-            if (!confirm('削除?')) return;
-            getItem().phases[phIdx].tasks.splice(tIdx, 1);
-            saveData();
-            renderTabs(getItem());
-        }
-
-        function updateRoadmapComment(val) {
-            getItem().roadmapComment = val;
-            saveData();
-        }
-
-        function updateIssueComment(val) {
-            getItem().issueComment = val;
-            saveData();
-        }
-
-        function updateStatusComment(val) {
-            getItem().statusComment = val;
-            saveData();
-        }
-
-        function renderStatusMilestones(item) {
-            if (!item.statusMilestones || item.statusMilestones.length === 0) {
-                return '<div style="text-align: center; color: #999; padding: 1.5rem;">マイルストーンなし</div>';
-            }
-
-            let html = '<div class="milestone-timeline"><div class="milestone-line"></div>';
-
-            item.statusMilestones.forEach((m, idx) => {
+            let html = `<h2>${escapeHtml(cat.name)}</h2>`;
+            html += '<div class="projects-grid">';
+            
+            cat.projects?.forEach(proj => {
                 html += `
-                    <div class="milestone-entry">
-                        <div class="milestone-dot"></div>
-                        <div class="milestone-card">
-                            <div class="milestone-date">📅 ${escapeHtml(m.date || '')}</div>
-                            <div class="milestone-content editable"
-                                 ondblclick="editStatusMilestone(${m.id}); event.stopPropagation();"
-                                 title="ダブルクリックで編集">${escapeHtml(m.content || '')}</div>
-                            ${(m.attachments || []).length > 0 ? `
-                                <div style="margin: 0.5rem 0; font-size: 11px; color: #666;">
-                                    <strong>📎 ファイル:</strong>
-                                    ${m.attachments.map(f => `<div style="margin-top: 0.25rem;"><span class="file-link" onclick="showFile('${String(f.name).replace(/'/g, "\\'")}', '${String(f.data).replace(/'/g, "\\'")}')">${escapeHtml(f.name)}</span></div>`).join('')}
-                                </div>
-                            ` : ''}
-                            <div class="milestone-actions">
-                                <button class="milestone-delete" onclick="deleteStatusMilestone(${m.id})">削除</button>
-                            </div>
-                            <div class="milestone-edit-hint">💡 ダブルクリックで編集</div>
+                    <div class="project-card" onclick="selectProject('${cat.id}', '${proj.id}')">
+                        <div>
+                            <div class="project-name">${escapeHtml(proj.name)}</div>
+                            <div class="project-count">${proj.items?.length || 0} アイテム</div>
+                        </div>
+                        <div class="project-actions">
+                            <button class="mini-btn" onclick="event.stopPropagation(); editProjectName('${cat.id}', '${proj.id}')">✎</button>
+                            <button class="mini-btn danger" onclick="event.stopPropagation(); deleteProject('${cat.id}', '${proj.id}')">×</button>
                         </div>
                     </div>
                 `;
             });
 
             html += '</div>';
-            return html;
+            html += `<button class="add-phase-btn" onclick="addProject('${cat.id}')">+ プロジェクト追加</button>`;
+
+            document.getElementById('viewContainer').innerHTML = html;
         }
 
-        function addStatusMilestone() {
-            const item = getItem();
-            const comment = item.statusComment || '';
+        function selectProject(catId, projId) {
+            currentCategory = catId;
+            currentProject = projId;
+            currentItem = null;
+            renderItems();
+        }
 
-            if (!comment.trim()) {
-                alert('コメントを入力してください');
-                return;
-            }
+        function renderItems() {
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            if (!proj) return;
 
-            if (!item.statusMilestones) {
-                item.statusMilestones = [];
-            }
+            updateBreadcrumb();
 
-            const today = new Date();
-            const dateStr = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
-
-            item.statusMilestones.unshift({
-                id: Date.now(),
-                date: dateStr,
-                content: comment.trim(),
-                attachments: item.statusAttachments ? [...item.statusAttachments] : []
+            let html = `<h2>${escapeHtml(proj.name)}</h2>`;
+            html += '<div class="items-grid">';
+            
+            proj.items?.forEach(item => {
+                html += `
+                    <div class="item-card" onclick="selectItem('${proj.id}', '${item.id}')">
+                        <div class="item-name">${escapeHtml(item.name)}</div>
+                        <div class="item-preview">${escapeHtml(item.status || 'アイテム')}</div>
+                        <div class="item-actions">
+                            <button class="mini-btn" onclick="event.stopPropagation(); editItemName('${proj.id}', '${item.id}')">✎</button>
+                            <button class="mini-btn danger" onclick="event.stopPropagation(); deleteItem('${proj.id}', '${item.id}')">×</button>
+                        </div>
+                    </div>
+                `;
             });
 
-            item.statusComment = '';
-            item.statusAttachments = [];
-            saveData();
-            renderTabs(item);
-            alert('マイルストーンに追加しました');
+            html += '</div>';
+            html += `<button class="add-phase-btn" onclick="addItem('${proj.id}')">+ アイテム追加</button>`;
+
+            document.getElementById('viewContainer').innerHTML = html;
         }
 
-        function deleteStatusMilestone(id) {
-            if (!confirm('削除しますか？')) return;
-            const item = getItem();
-            item.statusMilestones = (item.statusMilestones || []).filter(m => m.id !== id);
-            saveData();
-            renderTabs(item);
+        function selectItem(projId, itemId) {
+            currentProject = projId;
+            currentItem = itemId;
+            renderItemDetail();
         }
 
-        function editStatusMilestone(id) {
-            const item = getItem();
-            const milestone = (item.statusMilestones || []).find(m => m.id === id);
-            if (!milestone) return;
+        function renderItemDetail() {
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            const item = proj?.items?.find(i => i.id === currentItem);
+            if (!item) return;
 
-            const newContent = prompt('マイルストーンを編集:', milestone.content || '');
-            if (newContent !== null) {
-                if (newContent.trim()) {
-                    milestone.content = newContent.trim();
-                    saveData();
-                    renderTabs(item);
-                } else {
-                    alert('空のテキストは保存できません');
-                }
-            }
+            updateBreadcrumb();
+
+            let html = `
+                <div class="detail-view">
+                    <div class="detail-header">
+                        <h1 class="detail-title editable" ondblclick="editItemName('${proj.id}', '${item.id}')">${escapeHtml(item.name)}</h1>
+                    </div>
+
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTab('roadmap')">🗺️ ロードマップ</button>
+                        <button class="tab-btn" onclick="switchTab('issues')">⚠️ 課題</button>
+                        <button class="tab-btn" onclick="switchTab('status')">📊 現状</button>
+                        <button class="tab-btn" onclick="switchTab('stumbles')">🚧 躓き履歴</button>
+                    </div>
+
+                    <!-- Roadmap Tab -->
+                    <div class="tab-content active" id="roadmap-tab">
+                        <div class="roadmap-container" id="roadmapContainer"></div>
+                        <button class="add-phase-btn" onclick="addPhase('${item.id}')">+ フェーズ追加</button>
+                    </div>
+
+                    <!-- Issues Tab -->
+                    <div class="tab-content" id="issues-tab">
+                        <div class="comments-section">
+                            <div class="comments-list" id="issuesList"></div>
+                            <div class="comment-form">
+                                <textarea class="comment-input" id="issueInput" placeholder="課題を入力..."></textarea>
+                                <button class="comment-submit" onclick="addIssueComment('${item.id}')">送信</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Tab -->
+                    <div class="tab-content" id="status-tab">
+                        <div class="comments-section">
+                            <div class="comments-list" id="statusList"></div>
+                            <div class="comment-form">
+                                <textarea class="comment-input" id="statusInput" placeholder="現状を入力..."></textarea>
+                                <button class="comment-submit" onclick="addStatusComment('${item.id}')">送信</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stumbles Tab -->
+                    <div class="tab-content" id="stumbles-tab">
+                        <div class="comments-section">
+                            <div class="comments-list" id="stumblesList"></div>
+                            <div class="comment-form">
+                                <textarea class="comment-input" id="stumbleInput" placeholder="躓きを入力..."></textarea>
+                                <button class="comment-submit" onclick="addStumbleComment('${item.id}')">送信</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('viewContainer').innerHTML = html;
+            renderRoadmap(item);
+            renderComments('issues', item);
+            renderComments('status', item);
+            renderComments('stumbles', item);
         }
 
-        function addStumble() {
-            const item = getItem();
-            const today = new Date();
-            const dateStr = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
-            const content = item.roadmapComment || '';
+        function renderRoadmap(item) {
+            const phases = item.phases || [];
+            let html = '';
 
-            if (!content.trim()) {
-                alert('コメントを入力してください');
-                return;
-            }
+            phases.forEach((phase, pidx) => {
+                const completedTasks = phase.tasks?.filter(t => t.completed).length || 0;
+                const totalTasks = phase.tasks?.length || 0;
+                const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-            const isDuplicate = (item.stumbles || []).some(s => s.date === dateStr && s.content === content);
-            if (isDuplicate) {
-                alert('この内容は既に追加されています');
-                return;
-            }
+                html += `
+                    <div class="phase-section">
+                        <div class="phase-header">
+                            <div class="phase-title editable" ondblclick="editPhase('${item.id}', ${pidx})">${escapeHtml(phase.name)}</div>
+                            <div class="phase-badge">${percentage}%</div>
+                            <button class="phase-delete" onclick="deletePhase('${item.id}', ${pidx})">×</button>
+                        </div>
+                        <div class="tasks-list" id="tasks-${pidx}">
+                `;
 
-            if (!item.stumbles) item.stumbles = [];
-            item.stumbles.unshift({
-                date: dateStr,
-                title: content.substring(0, 40),
-                content: content
+                phase.tasks?.forEach((task, tidx) => {
+                    html += `
+                        <div class="task-item">
+                            <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${item.id}', ${pidx}, ${tidx})">
+                            <span class="task-text ${task.completed ? 'completed' : ''}" ondblclick="editTask('${item.id}', ${pidx}, ${tidx})">${escapeHtml(task.name)}</span>
+                            <button class="task-delete" onclick="deleteTask('${item.id}', ${pidx}, ${tidx})">×</button>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                        <button class="add-task-btn" onclick="addTask('${item.id}', ${pidx})">+ タスク追加</button>
+                    </div>
+                `;
             });
-            item.roadmapComment = '';
-            saveData();
-            renderTabs(item);
-            alert('躓き履歴に追加しました');
+
+            document.getElementById('roadmapContainer').innerHTML = html;
         }
 
-        function deleteStumble(idx) {
-            if (!confirm('削除?')) return;
-            getItem().stumbles.splice(idx, 1);
-            saveData();
-            renderTabs(getItem());
+        function renderComments(type, item) {
+            const comments = item[type + 'Comments'] || [];
+            let html = '';
+
+            comments.forEach((comment, idx) => {
+                const time = new Date(comment.timestamp).toLocaleString('ja-JP');
+                html += `
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-time">${time}</span>
+                            <button class="comment-delete" onclick="deleteComment('${item.id}', '${type}', ${idx})">×</button>
+                        </div>
+                        <div class="comment-content" ondblclick="editComment('${item.id}', '${type}', ${idx})">${escapeHtml(comment.content)}</div>
+                    </div>
+                `;
+            });
+
+            document.getElementById(type + 'List').innerHTML = html;
         }
 
-        function editStumbleContent(idx) {
-            const item = getItem();
-            const s = (item.stumbles || [])[idx];
-            const newContent = prompt('躓き履歴を編集:', s?.content || '');
-            if (newContent && newContent.trim()) {
-                item.stumbles[idx].content = newContent.trim();
-                item.stumbles[idx].title = newContent.substring(0, 40);
-                saveData();
-                renderTabs(item);
-            }
-        }
-
-        function addIssueFile(e) {
-            const f = e.target.files[0];
-            if (!f) return;
-
-            const r = new FileReader();
-            r.onload = () => {
-                const item = getItem();
-                if (!item.issueAttachments) item.issueAttachments = [];
-                item.issueAttachments.push({ name: f.name, data: r.result });
-                saveData();
-                renderTabs(item);
-            };
-            r.readAsDataURL(f);
-        }
-
-        function deleteIssueFile(idx) {
-            if (!confirm('削除?')) return;
-            getItem().issueAttachments.splice(idx, 1);
-            saveData();
-            renderTabs(getItem());
-        }
-
-        function addStatusFile(e) {
-            const f = e.target.files[0];
-            if (!f) return;
-
-            const r = new FileReader();
-            r.onload = () => {
-                const item = getItem();
-                if (!item.statusAttachments) item.statusAttachments = [];
-                item.statusAttachments.push({ name: f.name, data: r.result });
-                saveData();
-                renderTabs(item);
-            };
-            r.readAsDataURL(f);
-        }
-
-        function deleteStatusFile(idx) {
-            if (!confirm('削除?')) return;
-            getItem().statusAttachments.splice(idx, 1);
-            saveData();
-            renderTabs(getItem());
+        // ===== Event Handlers =====
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
         }
 
         function updateBreadcrumb() {
-            let html = '<button onclick="goHome()">ホーム</button>';
+            let html = '<a class="breadcrumb-item" onclick="renderHome()">ホーム</a>';
 
-            if (curr.category) {
-                const cat = window.data.categories.find(c => c.id === curr.category);
-                if (cat) html += `<span class="separator"> > </span><button onclick="showProjects('${curr.category}')">${escapeHtml(cat.name || '無題')}</button>`;
+            if (currentCategory) {
+                const cat = allData.categories.find(c => c.id === currentCategory);
+                html += ` > <a class="breadcrumb-item" onclick="selectCategory('${currentCategory}')">${escapeHtml(cat?.name || '?')}</a>`;
             }
 
-            if (curr.project) {
-                const cat = window.data.categories.find(c => c.id === curr.category);
-                const proj = cat?.projects?.find(p => p.id === curr.project);
-                if (proj) html += `<span class="separator"> > </span><button onclick="showItems('${curr.category}', '${curr.project}')">${escapeHtml(proj.name || '無題')}</button>`;
+            if (currentProject) {
+                const cat = allData.categories.find(c => c.id === currentCategory);
+                const proj = cat?.projects?.find(p => p.id === currentProject);
+                html += ` > <a class="breadcrumb-item" onclick="selectProject('${currentCategory}', '${currentProject}')">${escapeHtml(proj?.name || '?')}</a>`;
             }
 
-            if (curr.item) {
-                const item = getItem();
-                if (item) html += `<span class="separator"> > </span><span>${escapeHtml(item.name || '無題')}</span>`;
+            if (currentItem) {
+                const cat = allData.categories.find(c => c.id === currentCategory);
+                const proj = cat?.projects?.find(p => p.id === currentProject);
+                const item = proj?.items?.find(i => i.id === currentItem);
+                html += ` > <span class="breadcrumb-item">${escapeHtml(item?.name || '?')}</span>`;
             }
 
             document.getElementById('breadcrumb').innerHTML = html;
         }
 
-        function exportJSON() {
-            const json = JSON.stringify(data, null, 2);
-            const blob = new Blob([json], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `portfolio_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            alert('エクスポートしました');
+        // ===== Add/Edit/Delete Functions =====
+        document.getElementById('addCategoryBtn').addEventListener('click', () => {
+            showModal('新規カテゴリー', (name) => {
+                allData.categories.push({
+                    id: generateId(),
+                    name: name,
+                    projects: []
+                });
+                saveData();
+                renderCategories();
+            });
+        });
+
+        function addProject(catId) {
+            showModal('新規プロジェクト', (name) => {
+                const cat = allData.categories.find(c => c.id === catId);
+                if (!cat.projects) cat.projects = [];
+                cat.projects.push({
+                    id: generateId(),
+                    name: name,
+                    items: []
+                });
+                saveData();
+                renderProjects();
+            });
         }
 
-        function importJSON() {
-            const input = document.getElementById('jsonImportInput');
-            const file = input.files[0];
-            
-            if (!file) {
-                alert('ファイルを選択してください');
-                return;
+        function editProjectName(catId, projId) {
+            const cat = allData.categories.find(c => c.id === catId);
+            const proj = cat?.projects?.find(p => p.id === projId);
+            if (!proj) return;
+
+            showModal('プロジェクト名編集', (name) => {
+                proj.name = name;
+                saveData();
+                renderProjects();
+            }, proj.name);
+        }
+
+        function deleteProject(catId, projId) {
+            if (!confirm('削除しますか？')) return;
+            const cat = allData.categories.find(c => c.id === catId);
+            if (cat) {
+                cat.projects = cat.projects?.filter(p => p.id !== projId) || [];
+                saveData();
+                renderProjects();
             }
+        }
 
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    
-                    if (!imported.categories) {
-                        alert('無効なJSONファイルです。categoriesプロパティが必要です。');
-                        return;
-                    }
+        function addItem(projId) {
+            showModal('新規アイテム', (name) => {
+                const cat = allData.categories.find(c => c.id === currentCategory);
+                const proj = cat?.projects?.find(p => p.id === projId);
+                if (!proj.items) proj.items = [];
+                proj.items.push({
+                    id: generateId(),
+                    name: name,
+                    status: 'アイテム',
+                    phases: [],
+                    issuesComments: [],
+                    statusComments: [],
+                    stumblesComments: []
+                });
+                saveData();
+                renderItems();
+            });
+        }
 
-                    window.data.categories = imported.categories;
-                    await saveData();
-                    goHome();
-                    alert('インポートしました');
-                    input.value = ''; // ファイル入力をリセット
-                } catch (error) {
-                    alert('JSONファイルの読み込みに失敗しました: ' + error.message);
+        function editItemName(projId, itemId) {
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === projId);
+            const item = proj?.items?.find(i => i.id === itemId);
+            if (!item) return;
+
+            showModal('アイテム名編集', (name) => {
+                item.name = name;
+                saveData();
+                renderItemDetail();
+            }, item.name);
+        }
+
+        function deleteItem(projId, itemId) {
+            if (!confirm('削除しますか？')) return;
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === projId);
+            if (proj) {
+                proj.items = proj.items?.filter(i => i.id !== itemId) || [];
+                saveData();
+                renderItems();
+            }
+        }
+
+        function deleteCategory(catId) {
+            if (!confirm('削除しますか？')) return;
+            allData.categories = allData.categories.filter(c => c.id !== catId);
+            if (currentCategory === catId) {
+                currentCategory = null;
+                currentProject = null;
+                currentItem = null;
+            }
+            saveData();
+            renderCategories();
+            renderHome();
+        }
+
+        function addPhase(itemId) {
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            const item = proj?.items?.find(i => i.id === itemId);
+            if (!item) return;
+
+            if (!item.phases) item.phases = [];
+            const phaseNum = item.phases.length + 1;
+            item.phases.push({
+                name: `フェーズ ${phaseNum}`,
+                tasks: []
+            });
+            saveData();
+            renderItemDetail();
+        }
+
+        function editPhase(itemId, phaseIdx) {
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            const item = proj?.items?.find(i => i.id === itemId);
+            if (!item?.phases?.[phaseIdx]) return;
+
+            showModal('フェーズ名編集', (name) => {
+                item.phases[phaseIdx].name = name;
+                saveData();
+                renderItemDetail();
+            }, item.phases[phaseIdx].name);
+        }
+
+        function deletePhase(itemId, phaseIdx) {
+            if (!confirm('削除しますか？')) return;
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            const item = proj?.items?.find(i => i.id === itemId);
+            if (item?.phases) {
+                item.phases.splice(phaseIdx, 1);
+                saveData();
+                renderItemDetail();
+            }
+        }
+
+        function addTask(itemId, phaseIdx) {
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            const item = proj?.items?.find(i => i.id === itemId);
+            if (!item?.phases?.[phaseIdx]) return;
+
+            showModal('タスク名', (name) => {
+                if (!item.phases[phaseIdx].tasks) item.phases[phaseIdx].tasks = [];
+                item.phases[phaseIdx].tasks.push({
+                    name: name,
+                    completed: false
+                });
+                saveData();
+                renderItemDetail();
+            });
+        }
+
+        function editTask(itemId, phaseIdx, taskIdx) {
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            const item = proj?.items?.find(i => i.id === itemId);
+            const task = item?.phases?.[phaseIdx]?.tasks?.[taskIdx];
+            if (!task) return;
+
+            showModal('タスク編集', (name) => {
+                task.name = name;
+                saveData();
+                renderItemDetail();
+            }, task.name);
+        }
+
+        function toggleTask(itemId, phaseIdx, taskIdx) {
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            const item = proj?.items?.find(i => i.id === itemId);
+            const task = item?.phases?.[phaseIdx]?.tasks?.[taskIdx];
+            if (task) {
+                task.completed = !task.completed;
+                saveData();
+                renderItemDetail();
+            }
+        }
+
+        function deleteTask(itemId, phaseIdx, taskIdx) {
+            if (!confirm('削除しますか？')) return;
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            const item = proj?.items?.find(i => i.id === itemId);
+            if (item?.phases?.[phaseIdx]?.tasks) {
+                item.phases[phaseIdx].tasks.splice(taskIdx, 1);
+                saveData();
+                renderItemDetail();
+            }
+        }
+
+        function addIssueComment(itemId) {
+            const content = document.getElementById('issueInput').value.trim();
+            if (!content) return;
+            
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            const item = proj?.items?.find(i => i.id === itemId);
+            if (!item) return;
+
+            if (!item.issuesComments) item.issuesComments = [];
+            item.issuesComments.push({
+                content: content,
+                timestamp: new Date().toISOString()
+            });
+            document.getElementById('issueInput').value = '';
+            saveData();
+            renderComments('issues', item);
+        }
+
+        function addStatusComment(itemId) {
+            const content = document.getElementById('statusInput').value.trim();
+            if (!content) return;
+            
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            const item = proj?.items?.find(i => i.id === itemId);
+            if (!item) return;
+
+            if (!item.statusComments) item.statusComments = [];
+            item.statusComments.push({
+                content: content,
+                timestamp: new Date().toISOString()
+            });
+            document.getElementById('statusInput').value = '';
+            saveData();
+            renderComments('status', item);
+        }
+
+        function addStumbleComment(itemId) {
+            const content = document.getElementById('stumbleInput').value.trim();
+            if (!content) return;
+            
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            const item = proj?.items?.find(i => i.id === itemId);
+            if (!item) return;
+
+            if (!item.stumblesComments) item.stumblesComments = [];
+            item.stumblesComments.push({
+                content: content,
+                timestamp: new Date().toISOString()
+            });
+            document.getElementById('stumbleInput').value = '';
+            saveData();
+            renderComments('stumbles', item);
+        }
+
+        function editComment(itemId, type, commentIdx) {
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            const item = proj?.items?.find(i => i.id === itemId);
+            const comment = item?.[type + 'Comments']?.[commentIdx];
+            if (!comment) return;
+
+            showModal('コメント編集', (content) => {
+                comment.content = content;
+                saveData();
+                renderComments(type, item);
+            }, comment.content);
+        }
+
+        function deleteComment(itemId, type, commentIdx) {
+            if (!confirm('削除しますか？')) return;
+            const cat = allData.categories.find(c => c.id === currentCategory);
+            const proj = cat?.projects?.find(p => p.id === currentProject);
+            const item = proj?.items?.find(i => i.id === itemId);
+            if (item?.[type + 'Comments']) {
+                item[type + 'Comments'].splice(commentIdx, 1);
+                saveData();
+                renderComments(type, item);
+            }
+        }
+
+        // ===== Utilities =====
+        function showModal(title, callback, defaultValue = '') {
+            const modal = document.getElementById('addItemModal');
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('itemNameInput').value = defaultValue;
+            document.getElementById('itemNameInput').focus();
+
+            const confirmBtn = document.getElementById('confirmAddBtn');
+            const cancelBtn = document.getElementById('cancelAddBtn');
+
+            const handleConfirm = () => {
+                const value = document.getElementById('itemNameInput').value.trim();
+                if (value) {
+                    callback(value);
+                    modal.classList.remove('active');
+                    confirmBtn.removeEventListener('click', handleConfirm);
+                    cancelBtn.removeEventListener('click', handleCancel);
                 }
             };
-            reader.readAsText(file);
-        }
 
-        window.addEventListener('popstate', goHome);
-
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.classList.add("show");
-            appErrorMessage.textContent = message;
-            appErrorMessage.classList.add("show");
-        }
-
-        function clearError() {
-            errorMessage.textContent = "";
-            errorMessage.classList.remove("show");
-            appErrorMessage.textContent = "";
-            appErrorMessage.classList.remove("show");
-        }
-
-        function toJapaneseError(error) {
-            const code = error?.code || "unknown";
-            const messages = {
-                "auth/unauthorized-domain": "このドメインがFirebase Authenticationの承認済みドメインに入っていません。Firebase ConsoleでAuthorized domainsを確認してください。",
-                "auth/popup-blocked": "ブラウザがログイン用ポップアップをブロックしています。ポップアップを許可して再試行してください。",
-                "auth/popup-closed-by-user": "ログイン画面が閉じられました。もう一度ログインしてください。",
-                "auth/operation-not-allowed": "Firebase ConsoleのAuthenticationでGoogleログインが有効になっていません。",
-                "auth/invalid-api-key": "Firebase設定のapiKeyが正しくありません。"
+            const handleCancel = () => {
+                modal.classList.remove('active');
+                confirmBtn.removeEventListener('click', handleConfirm);
+                cancelBtn.removeEventListener('click', handleCancel);
             };
 
-            return messages[code] || `ログインできませんでした。エラーコード: ${code}`;
+            confirmBtn.addEventListener('click', handleConfirm);
+            cancelBtn.addEventListener('click', handleCancel);
+
+            document.getElementById('itemNameInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleConfirm();
+            });
+
+            modal.classList.add('active');
         }
 
-        // すべての関数をグローバルに公開
-        window.initPortfolio = initPortfolio;
-        window.saveData = saveData;
-        window.loadData = loadData;
-        window.renderCategories = renderCategories;
-        window.goHome = goHome;
-        window.showProjects = showProjects;
-        window.showItems = showItems;
-        window.switchTab = switchTab;
-        window.addPhase = addPhase;
-        window.deletePhase = deletePhase;
-        window.addTask = addTask;
-        window.deleteTask = deleteTask;
-        window.addStumble = addStumble;
-        window.deleteStumble = deleteStumble;
-        window.addStatusMilestone = addStatusMilestone;
-        window.deleteStatusMilestone = deleteStatusMilestone;
-        window.addProject = addProject;
-        window.deleteProject = deleteProject;
-        window.addItem = addItem;
-        window.deleteItem = deleteItem;
-        window.addCategory = addCategory;
-        window.deleteCategory = deleteCategory;
-        window.deleteIssueFile = deleteIssueFile;
-        window.deleteStatusFile = deleteStatusFile;
-        window.showFile = showFile;
-        window.closeModal = closeModal;
-        window.exportJSON = exportJSON;
-        window.importJSON = importJSON;
-        window.editCategoryIcon = editCategoryIcon;
-        window.editCategoryName = editCategoryName;
+        function showLoginError(message) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    currentUser = user;
+                    document.getElementById('userEmail').textContent = user.email;
+                }
+            });
+        });
     </script>
 </body>
 </html>
