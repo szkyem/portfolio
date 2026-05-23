@@ -681,36 +681,49 @@ function renderProjects() {
             await persistAndRender();
         }
 
-        function renderItemDetail() {
-            const item = getItem();
-            ensureItemShape(item);
+function renderItemDetail() {
+    const item = getItem();
+    ensureItemShape(item);
 
-            mainActions.innerHTML = "";
-            appContent.innerHTML = `
-                <section class="detail">
-                    <div class="tabs">
-                        <button class="tab-btn ${view.tab === "roadmap" ? "active" : ""}" data-tab="roadmap">ロードマップ</button>
-                        <button class="tab-btn ${view.tab === "issues" ? "active" : ""}" data-tab="issues">課題</button>
-                        <button class="tab-btn ${view.tab === "status" ? "active" : ""}" data-tab="status">現状</button>
-                        <button class="tab-btn ${view.tab === "stumbles" ? "active" : ""}" data-tab="stumbles">躓き履歴</button>
-                    </div>
+    mainActions.innerHTML = "";
+    appContent.innerHTML = `
+        <section class="detail">
+            <h2
+                style="font-size: 24px; font-weight: 800; margin: 0 0 20px; color: #111827;"
+                id="itemDetailTitle"
+                title="ダブルクリックで編集"
+            >${escapeHtml(item.name)}</h2>
 
-                    <div id="tabContent"></div>
-                </section>
-            `;
+            <div class="tabs">
+                <button class="tab-btn ${view.tab === "roadmap" ? "active" : ""}" data-tab="roadmap">ロードマップ</button>
+                <button class="tab-btn ${view.tab === "issues" ? "active" : ""}" data-tab="issues">課題</button>
+                <button class="tab-btn ${view.tab === "status" ? "active" : ""}" data-tab="status">現状</button>
+                <button class="tab-btn ${view.tab === "stumbles" ? "active" : ""}" data-tab="stumbles">躓き履歴</button>
+            </div>
 
-            appContent.querySelectorAll("[data-tab]").forEach((btn) => {
-                btn.addEventListener("click", () => {
-                    view.tab = btn.dataset.tab;
-                    renderItemDetail();
-                });
-            });
+            <div id="tabContent"></div>
+        </section>
+    `;
 
-            if (view.tab === "roadmap") renderRoadmap(item);
-            if (view.tab === "issues") renderHistoryPanel(item, "issues", "課題コメント");
-            if (view.tab === "status") renderHistoryPanel(item, "statuses", "現状コメント");
-            if (view.tab === "stumbles") renderHistoryPanel(item, "stumbles", "躓き履歴コメント");
-        }
+    document.getElementById("itemDetailTitle").addEventListener("dblclick", async () => {
+        const name = prompt("小項目名を編集", item.name);
+        if (!name?.trim()) return;
+        item.name = name.trim();
+        await persistAndRender();
+    });
+
+    appContent.querySelectorAll("[data-tab]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            view.tab = btn.dataset.tab;
+            renderItemDetail();
+        });
+    });
+
+    if (view.tab === "roadmap") renderRoadmap(item);
+    if (view.tab === "issues") renderHistoryPanel(item, "issues", "課題コメント");
+    if (view.tab === "status") renderHistoryPanel(item, "statuses", "現状コメント");
+    if (view.tab === "stumbles") renderHistoryPanel(item, "stumbles", "躓き履歴コメント");
+}
 
         function renderRoadmap(item) {
             const tabContent = document.getElementById("tabContent");
