@@ -412,9 +412,10 @@
             if (currentUser) {
                 try {
                     await set(ref(database, `users/${currentUser.uid}/portfolioData`), data);
-                    console.log('Firebase 保存成功');
+                    console.log('Firebase 保存成功:', `users/${currentUser.uid}/portfolioData`);
                 } catch (error) {
-                    console.error('Firebase 保存エラー:', error);
+                    console.error('Firebase 保存エラー:', error.message);
+                    alert('データ保存に失敗しました: ' + error.message);
                 }
             }
         }
