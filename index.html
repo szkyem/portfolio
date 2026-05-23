@@ -189,9 +189,10 @@
         let isAdmin = false;
         let activeTabIndex = 0;
 
-        window.loginWithGoogle = function() {
-            signInWithPopup(auth, provider)
-                .catch(error => {
+loginBtn.addEventListener("click", async () => {
+    try {
+        await signInWithPopup(auth, provider);
+    } catch (error) {
                     console.error('ログインエラー:', error);
                     showMessage('Googleログインに失敗しました: ' + error.message, 'error');
                 });
