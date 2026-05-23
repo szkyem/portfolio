@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>仕事用メモ - Firebase</title>
+    <title>Portfolio - Firebase Login</title>
     <style>
         * {
             margin: 0;
@@ -25,7 +25,7 @@
             box-shadow: 0 18px 50px rgba(31, 41, 55, 0.18);
             padding: 36px;
             width: 100%;
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
@@ -126,6 +126,24 @@
             color: #111827;
         }
 
+        .simple-content {
+            padding: 8px 0;
+        }
+
+        .simple-content h2 {
+            margin: 0 0 16px;
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .simple-content p {
+            margin: 0;
+            font-size: 18px;
+            line-height: 1.8;
+            color: #1f2937;
+        }
+
         .breadcrumb {
             margin-bottom: 24px;
             font-size: 14px;
@@ -188,6 +206,8 @@
             border-radius: 4px;
             background: #2563eb;
             color: white;
+            border: none;
+            cursor: pointer;
         }
 
         .btn-sm:hover {
@@ -206,6 +226,8 @@
             background: #16a34a;
             margin-top: 16px;
             width: 100%;
+            color: white;
+            border: none;
         }
 
         .btn-add:hover {
@@ -231,6 +253,10 @@
 
         .detail-title:hover {
             background: #f0f0f0;
+        }
+
+        .hidden {
+            display: none !important;
         }
 
         .tabs {
@@ -372,23 +398,6 @@
             resize: vertical;
         }
 
-        .input-edit {
-            padding: 6px 8px;
-            border: 2px solid #2563eb;
-            border-radius: 4px;
-            font-size: 14px;
-            font-family: inherit;
-        }
-
-        .visually-hidden {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-        }
-
         .modal {
             display: none;
             position: fixed;
@@ -462,10 +471,13 @@
             background: #d1d5db;
         }
 
-        .progress-text {
-            font-size: 12px;
-            color: #666;
-            margin-top: 4px;
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
         }
 
         @media (max-width: 520px) {
@@ -486,10 +498,6 @@
             .logout-btn {
                 width: 100%;
             }
-
-            .grid {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
@@ -498,8 +506,9 @@
         <section class="login-container" id="loginSection">
             <div class="login-panel">
                 <div class="error-message" id="errorMessage"></div>
-                <h1>仕事用メモ</h1>
-                <p>Googleアカウントでログインしてください</p>
+
+                <h1>My Contents</h1>
+                <p>Googleアカウントでログインするとポートフォリオが表示されます。</p>
                 <button class="login-button" id="loginBtn" type="button">Googleでログイン</button>
             </div>
         </section>
@@ -508,7 +517,7 @@
             <div class="error-message" id="appErrorMessage"></div>
 
             <header class="app-header">
-                <h1 class="app-title">仕事用メモ</h1>
+                <h1 class="app-title">タイトル</h1>
                 <button class="logout-btn" id="logoutBtn" type="button">ログアウト</button>
             </header>
 
@@ -564,86 +573,27 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
-
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyB2CH410X3yk4YTJWFC2JyEWScXZn77Z3I",
-            authDomain: "my-portfolio-d3560.firebaseapp.com",
-            databaseURL: "https://my-portfolio-d3560-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "my-portfolio-d3560",
-            storageBucket: "my-portfolio-d3560.firebasestorage.app",
-            messagingSenderId: "293517847141",
-            appId: "1:293517847141:web:bec173cf345b47cf91f48c"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-
-        const auth = firebase.auth();
-        const database = firebase.database();
-        const provider = new firebase.auth.GoogleAuthProvider();
-
-        // DOM要素
-        const loginSection = document.getElementById("loginSection");
-        const portfolioSection = document.getElementById("portfolioSection");
-        const userEmail = document.getElementById("userEmail");
-        const loginBtn = document.getElementById("loginBtn");
-        const logoutBtn = document.getElementById("logoutBtn");
-        const errorMessage = document.getElementById("errorMessage");
-        const appErrorMessage = document.getElementById("appErrorMessage");
-
         // グローバル状態
         let currentUser = null;
         let appData = { categories: [] };
         let currentView = { category: null, project: null, item: null };
         let modalCallback = null;
 
-        // ログイン処理
-        loginBtn.addEventListener("click", async () => {
-            clearError();
-            loginBtn.disabled = true;
-            try {
-                await auth.signInWithPopup(provider);
-            } catch (error) {
-                showError(toJapaneseError(error));
-                console.error(error);
-            } finally {
-                loginBtn.disabled = false;
-            }
-        });
-
-        logoutBtn.addEventListener("click", async () => {
-            clearError();
-            await auth.signOut();
-        });
-
+        // Firebase初期化後のデータ処理
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
                 showLoginUI();
                 return;
             }
             currentUser = user;
-            await showPortfolioUI(user);
-            await loadDataFromFirebase();
-        });
-
-        function showLoginUI() {
-            loginSection.classList.remove("hidden");
-            portfolioSection.classList.add("hidden");
-        }
-
-        async function showPortfolioUI(user) {
             userEmail.textContent = user.email || user.displayName || user.uid;
             loginSection.classList.add("hidden");
             portfolioSection.classList.remove("hidden");
-        }
-
-        // Firebase データ管理
-        async function loadDataFromFirebase() {
+            
+            // Firebaseからデータを読み込む
             try {
-                const snapshot = await database.ref(`users/${currentUser.uid}`).once('value');
+                const snapshot = await database.ref(`users/${user.uid}`).once('value');
                 if (snapshot.exists()) {
                     appData = snapshot.val();
                 } else {
@@ -651,15 +601,21 @@
                 }
                 goHome();
             } catch (error) {
-                console.error('Firebase load error:', error);
+                console.error('データ読み込みエラー:', error);
+                appData = { categories: [] };
+                goHome();
             }
-        }
+        });
 
+        // Firebase保存
         async function saveToFirebase() {
+            if (!currentUser) return;
             try {
                 await database.ref(`users/${currentUser.uid}`).set(appData);
+                console.log('Firebase保存成功');
             } catch (error) {
-                console.error('Firebase save error:', error);
+                console.error('Firebase保存エラー:', error);
+                showError('保存に失敗しました: ' + error.message);
             }
         }
 
@@ -734,16 +690,6 @@
             `).join('');
         }
 
-        function editCategoryName() {
-            const cat = appData.categories.find(c => c.id === currentView.category);
-            if (!cat) return;
-            openEditModal(cat.name, (newName) => {
-                cat.name = newName;
-                saveToFirebase();
-                showProjects(currentView.category);
-            });
-        }
-
         function editCategoryNameDirect(catId) {
             const cat = appData.categories.find(c => c.id === catId);
             if (!cat) return;
@@ -751,6 +697,16 @@
                 cat.name = newName;
                 saveToFirebase();
                 renderCategories();
+            });
+        }
+
+        function editCategoryName() {
+            const cat = appData.categories.find(c => c.id === currentView.category);
+            if (!cat) return;
+            openEditModal(cat.name, (newName) => {
+                cat.name = newName;
+                saveToFirebase();
+                showProjects(currentView.category);
             });
         }
 
@@ -789,17 +745,6 @@
             `).join('');
         }
 
-        function editProjectName() {
-            const cat = appData.categories.find(c => c.id === currentView.category);
-            const proj = cat?.projects?.find(p => p.id === currentView.project);
-            if (!proj) return;
-            openEditModal(proj.name, (newName) => {
-                proj.name = newName;
-                saveToFirebase();
-                showItems(currentView.category, currentView.project);
-            });
-        }
-
         function editProjectNameDirect(projId) {
             const cat = appData.categories.find(c => c.id === currentView.category);
             const proj = cat?.projects?.find(p => p.id === projId);
@@ -808,6 +753,17 @@
                 proj.name = newName;
                 saveToFirebase();
                 showProjects(currentView.category);
+            });
+        }
+
+        function editProjectName() {
+            const cat = appData.categories.find(c => c.id === currentView.category);
+            const proj = cat?.projects?.find(p => p.id === currentView.project);
+            if (!proj) return;
+            openEditModal(proj.name, (newName) => {
+                proj.name = newName;
+                saveToFirebase();
+                showItems(currentView.category, currentView.project);
             });
         }
 
@@ -837,6 +793,11 @@
             renderItemTabs(item);
         }
 
+        function editItemNameDirect(itemId) {
+            currentView.item = itemId;
+            editItemName();
+        }
+
         function editItemName() {
             const item = getItem();
             if (!item) return;
@@ -845,11 +806,6 @@
                 saveToFirebase();
                 showItemDetail(currentView.item);
             });
-        }
-
-        function editItemNameDirect(itemId) {
-            currentView.item = itemId;
-            editItemName();
         }
 
         function deleteItem(itemId) {
@@ -1125,32 +1081,6 @@
             const div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML;
-        }
-
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.classList.add("show");
-            appErrorMessage.textContent = message;
-            appErrorMessage.classList.add("show");
-        }
-
-        function clearError() {
-            errorMessage.textContent = "";
-            errorMessage.classList.remove("show");
-            appErrorMessage.textContent = "";
-            appErrorMessage.classList.remove("show");
-        }
-
-        function toJapaneseError(error) {
-            const code = error?.code || "unknown";
-            const messages = {
-                "auth/unauthorized-domain": "このドメインがFirebase Authenticationの承認済みドメインに入っていません。Firebase ConsoleでAuthorized domainsを確認してください。",
-                "auth/popup-blocked": "ブラウザがログイン用ポップアップをブロックしています。ポップアップを許可して再試行してください。",
-                "auth/popup-closed-by-user": "ログイン画面が閉じられました。もう一度ログインしてください。",
-                "auth/operation-not-allowed": "Firebase ConsoleのAuthenticationでGoogleログインが有効になっていません。",
-                "auth/invalid-api-key": "Firebase設定のapiKeyが正しくありません。"
-            };
-            return messages[code] || `ログインできませんでした。エラーコード: ${code}`;
         }
 
         // グローバルスコープで関数を公開
