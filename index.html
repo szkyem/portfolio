@@ -189,21 +189,34 @@
         let isAdmin = false;
         let activeTabIndex = 0;
 
-loginBtn.addEventListener("click", async () => {
-    try {
-        await signInWithPopup(auth, provider);
-    } catch (error) {
-                    console.error('ログインエラー:', error);
-                    showMessage('Googleログインに失敗しました: ' + error.message, 'error');
-                });
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        loginBtn.addEventListener("click", async () => {
+            clearMessage();
+            loginBtn.disabled = true;
+
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                showMessage('Googleログインに失敗しました: ' + error.message, 'error');
+                console.error(error);
+            } finally {
+                loginBtn.disabled = false;
+            }
+        });
+
+        logoutBtn.addEventListener("click", async () => {
+            clearMessage();
+            await signOut(auth);
+        });
+
+        window.loginWithGoogle = function() {
+            loginBtn.click();
         }
 
         window.logout = function() {
-            signOut(auth)
-                .catch(error => {
-                    console.error('ログアウトエラー:', error);
-                    showMessage('ログアウトに失敗しました: ' + error.message, 'error');
-                });
+            logoutBtn.click();
         }
 
         onAuthStateChanged(auth, async user => {
