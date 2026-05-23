@@ -298,6 +298,14 @@
         </section>
     </main>
 
+    <script>
+        // モジュール外でグローバル変数を定義
+        window.data = { categories: [] };
+        window.currentUser = null;
+        window.isMember = false;
+        window.isAdmin = false;
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
         import {
@@ -387,9 +395,7 @@
             initPortfolio();
         }
 
-        // Portfolio機能（グローバル変数）
-        window.data = { categories: [] };
-        let data = window.data;  // ローカルスコープでも使えるように
+        // Portfolio機能（window.data を直接使用）
         let curr = { category: null, project: null, item: null };
         let activeTabIndex = 0;
 
@@ -444,7 +450,7 @@
                 
                 if (snapshot.exists()) {
                     const remoteData = snapshot.val();
-                    data.categories = remoteData.categories || [];
+                    window.data.categories = remoteData.categories || [];
                     console.log('Firebase から読み込み成功');
                 } else {
                     // Firebase にデータがない場合、localStorage から読み込み
@@ -452,7 +458,7 @@
                     if (saved) {
                         try {
                             const parsed = JSON.parse(saved);
-                            data.categories = parsed.categories || [];
+                            window.data.categories = parsed.categories || [];
                         } catch (error) {
                             console.error('localStorage 読み込みエラー:', error);
                         }
@@ -465,7 +471,7 @@
                 if (saved) {
                     try {
                         const parsed = JSON.parse(saved);
-                        data.categories = parsed.categories || [];
+                        window.data.categories = parsed.categories || [];
                     } catch (error) {
                         console.error('localStorage 読み込みエラー:', error);
                     }
@@ -505,7 +511,7 @@
             const grid = document.getElementById('categoriesGrid');
             grid.innerHTML = '';
 
-            data.categories.forEach((cat, idx) => {
+            window.data.categories.forEach((cat, idx) => {
                 const card = document.createElement('div');
                 card.className = 'card ' + (idx % 2 === 0 ? 'teal' : 'slate');
                 card.onclick = () => showProjects(cat.id);
@@ -536,18 +542,18 @@
         }
 
         function editCategoryIcon(idx) {
-            const newIcon = prompt('アイコン:', data.categories[idx]?.icon || '');
+            const newIcon = prompt('アイコン:', window.data.categories[idx]?.icon || '');
             if (newIcon) {
-                data.categories[idx].icon = newIcon;
+                window.data.categories[idx].icon = newIcon;
                 saveData();
                 renderCategories();
             }
         }
 
         function editCategoryName(idx) {
-            const newName = prompt('大項目名:', data.categories[idx]?.name || '');
+            const newName = prompt('大項目名:', window.data.categories[idx]?.name || '');
             if (newName && newName.trim()) {
-                data.categories[idx].name = newName.trim();
+                window.data.categories[idx].name = newName.trim();
                 saveData();
                 renderCategories();
             }
@@ -557,14 +563,14 @@
             const name = prompt('大項目名:');
             if (!name) return;
             const icon = prompt('アイコン (例:🔧):') || '📁';
-            data.categories.push({ id: 'c_' + Date.now(), name, icon, projects: [] });
+            window.data.categories.push({ id: 'c_' + Date.now(), name, icon, projects: [] });
             saveData();
             renderCategories();
         }
 
         function deleteCategory(idx) {
             if (!confirm('削除しますか？')) return;
-            data.categories.splice(idx, 1);
+            window.data.categories.splice(idx, 1);
             saveData();
             renderCategories();
         }
@@ -575,7 +581,7 @@
             curr.item = null;
             history.pushState({}, '');
 
-            const cat = data.categories.find(c => c.id === catId);
+            const cat = window.data.categories.find(c => c.id === catId);
             if (!cat) return;
 
             document.getElementById('categoriesGrid').parentElement.style.display = 'none';
@@ -624,7 +630,7 @@
         }
 
         function editCategoryNameFromProjects() {
-            const cat = data.categories.find(c => c.id === curr.category);
+            const cat = window.data.categories.find(c => c.id === curr.category);
             const newName = prompt('大項目名:', cat?.name || '');
             if (newName && newName.trim()) {
                 cat.name = newName.trim();
@@ -634,7 +640,7 @@
         }
 
         function editProjectName(pIdx) {
-            const cat = data.categories.find(c => c.id === curr.category);
+            const cat = window.data.categories.find(c => c.id === curr.category);
             const proj = cat?.projects?.[pIdx];
             const newName = prompt('中項目名:', proj?.name || '');
             if (newName && newName.trim()) {
@@ -648,7 +654,7 @@
             const name = prompt('中項目名:');
             if (!name) return;
 
-            const cat = data.categories.find(c => c.id === curr.category);
+            const cat = window.data.categories.find(c => c.id === curr.category);
             if (!cat.projects) cat.projects = [];
             cat.projects.push({ id: 'p_' + Date.now(), name, items: [] });
             saveData();
@@ -657,7 +663,7 @@
 
         function deleteProject(pIdx) {
             if (!confirm('削除しますか？')) return;
-            const cat = data.categories.find(c => c.id === curr.category);
+            const cat = window.data.categories.find(c => c.id === curr.category);
             cat.projects.splice(pIdx, 1);
             saveData();
             showProjects(curr.category);
@@ -669,7 +675,7 @@
             curr.item = null;
             history.pushState({}, '');
 
-            const cat = data.categories.find(c => c.id === catId);
+            const cat = window.data.categories.find(c => c.id === catId);
             const proj = cat?.projects?.find(p => p.id === projId);
             if (!proj) return;
 
@@ -719,7 +725,7 @@
         }
 
         function editProjectNameFromItems() {
-            const cat = data.categories.find(c => c.id === curr.category);
+            const cat = window.data.categories.find(c => c.id === curr.category);
             const proj = cat?.projects?.find(p => p.id === curr.project);
             const newName = prompt('中項目名:', proj?.name || '');
             if (newName && newName.trim()) {
@@ -734,7 +740,7 @@
             if (!name) return;
             const icon = prompt('アイコン:') || '📝';
 
-            const cat = data.categories.find(c => c.id === curr.category);
+            const cat = window.data.categories.find(c => c.id === curr.category);
             const proj = cat?.projects?.find(p => p.id === curr.project);
             if (!proj.items) proj.items = [];
 
@@ -757,7 +763,7 @@
         }
 
         function editItemName(iIdx) {
-            const cat = data.categories.find(c => c.id === curr.category);
+            const cat = window.data.categories.find(c => c.id === curr.category);
             const proj = cat?.projects?.find(p => p.id === curr.project);
             const item = proj?.items?.[iIdx];
             const newName = prompt('小項目名:', item?.name || '');
@@ -770,7 +776,7 @@
 
         function deleteItem(iIdx) {
             if (!confirm('削除しますか？')) return;
-            const cat = data.categories.find(c => c.id === curr.category);
+            const cat = window.data.categories.find(c => c.id === curr.category);
             const proj = cat?.projects?.find(p => p.id === curr.project);
             proj.items.splice(iIdx, 1);
             saveData();
@@ -810,7 +816,7 @@
         }
 
         function getItem() {
-            const cat = data.categories.find(c => c.id === curr.category);
+            const cat = window.data.categories.find(c => c.id === curr.category);
             if (!cat) return null;
             const proj = cat.projects?.find(p => p.id === curr.project);
             if (!proj) return null;
@@ -1240,12 +1246,12 @@
             let html = '<button onclick="goHome()">ホーム</button>';
 
             if (curr.category) {
-                const cat = data.categories.find(c => c.id === curr.category);
+                const cat = window.data.categories.find(c => c.id === curr.category);
                 if (cat) html += `<span class="separator"> > </span><button onclick="showProjects('${curr.category}')">${escapeHtml(cat.name || '無題')}</button>`;
             }
 
             if (curr.project) {
-                const cat = data.categories.find(c => c.id === curr.category);
+                const cat = window.data.categories.find(c => c.id === curr.category);
                 const proj = cat?.projects?.find(p => p.id === curr.project);
                 if (proj) html += `<span class="separator"> > </span><button onclick="showItems('${curr.category}', '${curr.project}')">${escapeHtml(proj.name || '無題')}</button>`;
             }
@@ -1289,7 +1295,7 @@
                         return;
                     }
 
-                    data.categories = imported.categories;
+                    window.data.categories = imported.categories;
                     await saveData();
                     goHome();
                     alert('インポートしました');
