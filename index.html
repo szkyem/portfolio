@@ -288,15 +288,18 @@
             background: #2563eb;
         }
 
-        textarea {
+        .input {
             width: 100%;
-            min-height: 110px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
             padding: 12px;
             font-size: 15px;
-            resize: vertical;
             margin-bottom: 12px;
+        }
+
+        textarea.input {
+            min-height: 110px;
+            resize: vertical;
         }
 
         .file-input {
@@ -332,6 +335,123 @@
             white-space: pre-wrap;
             line-height: 1.7;
             word-break: break-word;
+        }
+
+        .timeline {
+            position: relative;
+            margin-top: 24px;
+            padding-left: 42px;
+        }
+
+        .timeline::before {
+            content: "";
+            position: absolute;
+            left: 13px;
+            top: 8px;
+            bottom: 8px;
+            width: 3px;
+            background: #d8dee8;
+            border-radius: 999px;
+        }
+
+        .timeline-entry {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -42px;
+            top: 16px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            box-shadow: 0 0 0 2px #cbd5e1;
+        }
+
+        .timeline-entry.progress .timeline-dot { background: #2f80ed; }
+        .timeline-entry.stumble .timeline-dot { background: #f6d365; }
+
+        .timeline-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .timeline-summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .timeline-summary::-webkit-details-marker { display: none; }
+
+        .timeline-entry.progress .timeline-summary {
+            background: #eaf3ff;
+            color: #174a7c;
+        }
+
+        .timeline-entry.stumble .timeline-summary {
+            background: #fff7cf;
+            color: #705c00;
+        }
+
+        .timeline-date {
+            font-size: 13px;
+            font-weight: 700;
+            opacity: 0.75;
+            margin-bottom: 4px;
+        }
+
+        .timeline-title {
+            font-size: 15px;
+            font-weight: 800;
+            word-break: break-word;
+        }
+
+        .timeline-arrow {
+            font-size: 18px;
+            transform: rotate(0deg);
+            transition: transform 0.2s ease;
+        }
+
+        details[open] .timeline-arrow {
+            transform: rotate(180deg);
+        }
+
+        .timeline-body {
+            padding: 16px 18px;
+            border-top: 1px solid #e5e7eb;
+            background: #fff;
+        }
+
+        .timeline-type-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .progress-btn {
+            background: #2f80ed;
+        }
+
+        .progress-btn:hover {
+            background: #1d6fd6;
+        }
+
+        .stumble-btn {
+            background: #f6d365;
+            color: #453b00;
+        }
+
+        .stumble-btn:hover {
+            background: #eec84e;
         }
 
         .attachments {
@@ -384,6 +504,8 @@
 
             .app-body { padding: 18px; }
             .logout-btn { width: 100%; }
+            .timeline { padding-left: 34px; }
+            .timeline-dot { left: -34px; }
         }
     </style>
 </head>
@@ -394,7 +516,7 @@
                 <div class="error-message" id="errorMessage"></div>
                 <h1>My portfolio</h1>
                 <p>Googleアカウントでログインするとコンテンツが表示されます。</p>
-                <button class="login-button" id="loginBtn" type="button">Googleでログイン</button>
+                <button class="login-button" id="loginBtn" type="button">Googleでログイン１</button>
             </div>
         </section>
 
@@ -556,7 +678,18 @@
             item.phases ||= [];
             item.issues ||= [];
             item.statuses ||= [];
-            item.stumbles ||= [];
+
+            if (Array.isArray(item.stumbles) && item.stumbles.length) {
+                item.statuses.push(...item.stumbles.map((entry) => ({
+                    id: entry.id || uid(),
+                    date: entry.date || today(),
+                    title: entry.title || "躓いた内容",
+                    text: entry.text || entry.content || "",
+                    type: "stumble",
+                    attachments: entry.attachments || []
+                })));
+                item.stumbles = [];
+            }
         }
 
         function render() {
@@ -653,7 +786,7 @@
 
             mainActions.innerHTML = `<button type="button" id="addItemBtn">小項目を追加</button>`;
             appContent.innerHTML = proj.items.length
-                ? `<div class="grid">${proj.items.map((item) => cardHtml(item, 4, "項目セット")).join("")}</div>`
+                ? `<div class="grid">${proj.items.map((item) => cardHtml(item, 3, "項目セット")).join("")}</div>`
                 : `<div class="empty">小項目がありません。</div>`;
 
             document.getElementById("addItemBtn").addEventListener("click", addItem);
@@ -732,8 +865,7 @@
                 name: name.trim(),
                 phases: [],
                 issues: [],
-                statuses: [],
-                stumbles: []
+                statuses: []
             });
             await persistAndRender();
         }
@@ -751,7 +883,6 @@
                         <button class="tab-btn ${view.tab === "roadmap" ? "active" : ""}" data-tab="roadmap">ロードマップ</button>
                         <button class="tab-btn ${view.tab === "issues" ? "active" : ""}" data-tab="issues">課題</button>
                         <button class="tab-btn ${view.tab === "status" ? "active" : ""}" data-tab="status">現状</button>
-                        <button class="tab-btn ${view.tab === "stumbles" ? "active" : ""}" data-tab="stumbles">躓き履歴</button>
                     </div>
 
                     <div id="tabContent"></div>
@@ -774,8 +905,7 @@
 
             if (view.tab === "roadmap") renderRoadmap(item);
             if (view.tab === "issues") renderHistoryPanel(item, "issues", "課題コメント");
-            if (view.tab === "status") renderHistoryPanel(item, "statuses", "現状コメント");
-            if (view.tab === "stumbles") renderHistoryPanel(item, "stumbles", "躓き履歴コメント");
+            if (view.tab === "status") renderStatusTimeline(item);
         }
 
         function phaseProgress(phase) {
@@ -936,7 +1066,8 @@
             item[key] ||= [];
 
             tabContent.innerHTML = `
-                <textarea id="commentInput" placeholder="${label}を入力"></textarea>
+                <input class="input" id="historyTitleInput" type="text" placeholder="タイトルを入力">
+                <textarea class="input" id="commentInput" placeholder="${label}を入力"></textarea>
                 <input class="file-input" id="fileInput" type="file" multiple>
                 <button type="button" id="addHistoryBtn">履歴に追加</button>
 
@@ -944,6 +1075,7 @@
                     ${item[key].length ? item[key].map((entry, index) => `
                         <article class="history-item" data-history="${index}">
                             <div class="history-date">${escapeHtml(entry.date)}</div>
+                            <div class="history-text" data-history-title="${index}" style="font-weight:800; margin-bottom:8px;">${escapeHtml(entry.title || "無題")}</div>
                             <div class="history-text" data-history-text="${index}">${escapeHtml(entry.text)}</div>
                             ${attachmentHtml(entry.attachments)}
                             <div class="row-actions">
@@ -955,18 +1087,21 @@
             `;
 
             document.getElementById("addHistoryBtn").addEventListener("click", async () => {
+                const titleInput = document.getElementById("historyTitleInput");
                 const input = document.getElementById("commentInput");
                 const fileInput = document.getElementById("fileInput");
+                const title = titleInput.value.trim();
                 const text = input.value.trim();
                 const files = Array.from(fileInput.files || []);
 
-                if (!text && files.length === 0) return;
+                if (!title && !text && files.length === 0) return;
 
                 const attachments = await Promise.all(files.map(readFileAsDataUrl));
 
                 item[key].unshift({
                     id: uid(),
                     date: today(),
+                    title: title || "無題",
                     text,
                     attachments
                 });
@@ -974,20 +1109,117 @@
                 await persistAndRender();
             });
 
-            tabContent.querySelectorAll("[data-history-text]").forEach((el) => {
-                el.addEventListener("dblclick", async () => {
-                    const index = Number(el.dataset.historyText);
-                    const text = prompt("コメントを編集", item[key][index].text);
-                    if (text === null) return;
-                    item[key][index].text = text.trim();
+            bindHistoryEditAndDelete(tabContent, item[key]);
+        }
+
+        function renderStatusTimeline(item) {
+            const tabContent = document.getElementById("tabContent");
+            item.statuses ||= [];
+
+            tabContent.innerHTML = `
+                <input class="input" id="statusTitleInput" type="text" placeholder="日付横に表示するタイトル">
+                <textarea class="input" id="statusTextInput" placeholder="現状または躓いた内容を入力"></textarea>
+                <input class="file-input" id="statusFileInput" type="file" multiple>
+
+                <div class="timeline-type-actions">
+                    <button class="progress-btn" type="button" id="addProgressBtn">進捗として追加</button>
+                    <button class="stumble-btn" type="button" id="addStumbleBtn">躓きとして追加</button>
+                </div>
+
+                ${item.statuses.length ? `
+                    <div class="timeline">
+                        ${item.statuses.map((entry, index) => statusEntryHtml(entry, index)).join("")}
+                    </div>
+                ` : `<div class="empty" style="margin-top:20px;">現状の履歴がありません。</div>`}
+            `;
+
+            document.getElementById("addProgressBtn").addEventListener("click", () => addStatusEntry(item, "progress"));
+            document.getElementById("addStumbleBtn").addEventListener("click", () => addStatusEntry(item, "stumble"));
+
+            bindHistoryEditAndDelete(tabContent, item.statuses);
+        }
+
+        function statusEntryHtml(entry, index) {
+            const type = entry.type === "stumble" ? "stumble" : "progress";
+
+            return `
+                <div class="timeline-entry ${type}">
+                    <span class="timeline-dot"></span>
+
+                    <details class="timeline-card">
+                        <summary class="timeline-summary">
+                            <div>
+                                <div class="timeline-date">${escapeHtml(entry.date)}</div>
+                                <div class="timeline-title" data-history-title="${index}">${escapeHtml(entry.title || "無題")}</div>
+                            </div>
+                            <span class="timeline-arrow">▼</span>
+                        </summary>
+
+                        <div class="timeline-body">
+                            <div class="history-text" data-history-text="${index}">${escapeHtml(entry.text || "")}</div>
+                            ${attachmentHtml(entry.attachments)}
+                            <div class="row-actions">
+                                <button class="delete-btn" type="button" data-delete-history="${index}">削除</button>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            `;
+        }
+
+        async function addStatusEntry(item, type) {
+            const titleInput = document.getElementById("statusTitleInput");
+            const textInput = document.getElementById("statusTextInput");
+            const fileInput = document.getElementById("statusFileInput");
+
+            const title = titleInput.value.trim();
+            const text = textInput.value.trim();
+            const files = Array.from(fileInput.files || []);
+
+            if (!title && !text && files.length === 0) return;
+
+            const attachments = await Promise.all(files.map(readFileAsDataUrl));
+
+            item.statuses.unshift({
+                id: uid(),
+                date: today(),
+                title: title || (type === "progress" ? "進捗" : "躓いた内容"),
+                text,
+                type,
+                attachments
+            });
+
+            await persistAndRender();
+        }
+
+        function bindHistoryEditAndDelete(container, list) {
+            container.querySelectorAll("[data-history-title]").forEach((el) => {
+                el.addEventListener("dblclick", async (event) => {
+                    event.stopPropagation();
+                    const index = Number(el.dataset.historyTitle);
+                    const title = prompt("タイトルを編集", list[index].title || "");
+                    if (title === null) return;
+                    list[index].title = title.trim() || "無題";
                     await persistAndRender();
                 });
             });
 
-            tabContent.querySelectorAll("[data-delete-history]").forEach((btn) => {
-                btn.addEventListener("click", async () => {
+            container.querySelectorAll("[data-history-text]").forEach((el) => {
+                el.addEventListener("dblclick", async (event) => {
+                    event.stopPropagation();
+                    const index = Number(el.dataset.historyText);
+                    const text = prompt("コメントを編集", list[index].text || "");
+                    if (text === null) return;
+                    list[index].text = text.trim();
+                    await persistAndRender();
+                });
+            });
+
+            container.querySelectorAll("[data-delete-history]").forEach((btn) => {
+                btn.addEventListener("click", async (event) => {
+                    event.stopPropagation();
                     if (!confirm("履歴を削除しますか？")) return;
-                    item[key].splice(Number(btn.dataset.deleteHistory), 1);
+                    list.splice(Number(btn.dataset.deleteHistory), 1);
                     await persistAndRender();
                 });
             });
