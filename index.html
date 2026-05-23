@@ -106,8 +106,8 @@
             </div>
             <div class="auth-box">
                 <div id="authInfo" class="auth-info">未ログイン</div>
-                <button id="loginBtn" class="auth-btn" onclick="loginWithGoogle()">Googleでログイン</button>
-                <button id="logoutBtn" class="auth-btn logout hidden" onclick="logout()">ログアウト</button>
+                <button id="loginBtn" class="auth-btn" type="button">Googleでログイン</button>
+                <button id="logoutBtn" class="auth-btn logout hidden" type="button">ログアウト</button>
             </div>
         </header>
 
@@ -220,44 +220,17 @@
             logoutBtn.click();
         }
 
-        onAuthStateChanged(auth, async user => {
-            clearError();
-            currentUser = user;
-
+        onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                isMember = false;
-                isAdmin = false;
-                updateAuthUI();
                 showLoginScreen();
                 return;
             }
 
-            updateAuthInfo('認証確認中…');
-
-            try {
-                const memberSnap = await get(ref(database, 'members/' + user.uid));
-                const adminSnap = await get(ref(database, 'admins/' + user.uid));
-
-                isMember = memberSnap.val() === true;
-                isAdmin = adminSnap.val() === true;
-
-                updateAuthUI();
-
-                if (!isMember) {
-                    showLoginScreen();
-                    showError('このアカウントには閲覧権限がありません。管理者に members 追加を依頼してください。');
-                    return;
-                }
-
-                showAppScreen();
-                await loadData();
-                applyRoleUI();
-
-            } catch (error) {
-                console.error('権限確認エラー:', error);
-                showLoginScreen();
-                showError('権限確認に失敗しました: ' + error.message);
-            }
+            // ログイン成功 → アプリ画面を表示
+            showAppScreen();
+            updateAuthUI();
+            await loadData();
+            applyRoleUI();
         });
 
         function updateAuthUI() {
