@@ -3,97 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio - Firebase Login</title>
+    <title>My Contents</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: "Segoe UI", "Yu Gothic", "Meiryo", sans-serif;
-            background: linear-gradient(135deg, #4f7cff 0%, #263a66 100%);
-            min-height: 100vh;
-            padding: 24px;
+            background: #f4f6f9;
             color: #1f2937;
+            min-height: 100vh;
         }
 
-        .container {
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 18px 50px rgba(31, 41, 55, 0.18);
-            padding: 36px;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .login-container {
-            min-height: calc(100vh - 48px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .login-panel {
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 18px 50px rgba(31, 41, 55, 0.18);
-            padding: 36px;
-            width: 100%;
-            max-width: 560px;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 28px;
-            margin-bottom: 12px;
-        }
-
-        p {
-            line-height: 1.7;
+        button, input, textarea {
+            font-family: inherit;
         }
 
         button {
-            background: #2563eb;
-            color: #ffffff;
             border: none;
-            padding: 12px 24px;
             border-radius: 6px;
+            padding: 10px 14px;
             cursor: pointer;
-            font-size: 16px;
             font-weight: 700;
-            transition: background 0.2s ease;
+            background: #2563eb;
+            color: #fff;
         }
 
-        button:hover {
-            background: #1d4ed8;
+        button:hover { background: #1d4ed8; }
+
+        .hidden { display: none !important; }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: linear-gradient(135deg, #4f7cff 0%, #263a66 100%);
         }
 
-        button:disabled {
-            cursor: wait;
-            opacity: 0.65;
-        }
-
-        .login-button {
+        .login-panel {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 18px 50px rgba(31, 41, 55, 0.18);
+            padding: 36px;
             width: 100%;
-            margin-top: 24px;
+            max-width: 520px;
+            text-align: center;
         }
 
-        .logout-btn {
-            background: #eef2f7;
-            color: #1f2937;
-            white-space: nowrap;
-        }
-
-        .logout-btn:hover {
-            background: #dfe7f1;
-        }
-
-        .hidden {
-            display: none !important;
-        }
+        .login-panel h1 { margin-bottom: 12px; }
+        .login-panel p { line-height: 1.7; }
+        .login-button { width: 100%; margin-top: 24px; }
 
         .error-message {
             display: none;
@@ -102,178 +62,152 @@
             padding: 12px;
             border-radius: 6px;
             margin-bottom: 18px;
-            line-height: 1.6;
         }
 
-        .error-message.show {
-            display: block;
+        .error-message.show { display: block; }
+
+        .app {
+            width: 100%;
+            min-height: 100vh;
+            background: #fff;
         }
 
         .app-header {
+            height: 72px;
+            padding: 0 28px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
-            margin-bottom: 32px;
-            padding-bottom: 18px;
             border-bottom: 1px solid #e5e7eb;
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .app-title {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 700;
-            color: #111827;
+            font-size: 24px;
+            font-weight: 800;
         }
 
-        .simple-content {
-            padding: 8px 0;
-        }
-
-        .simple-content h2 {
-            margin: 0 0 16px;
-            font-size: 22px;
-            font-weight: 700;
-            color: #111827;
-        }
-
-        .simple-content p {
-            margin: 0;
-            font-size: 18px;
-            line-height: 1.8;
+        .logout-btn {
+            background: #eef2f7;
             color: #1f2937;
         }
 
+        .logout-btn:hover { background: #dfe7f1; }
+
+        .app-body {
+            padding: 28px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
         .breadcrumb {
-            margin-bottom: 24px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            color: #6b7280;
             font-size: 14px;
-            color: #666;
         }
 
         .breadcrumb button {
-            background: none;
-            border: none;
+            background: transparent;
             color: #2563eb;
-            cursor: pointer;
             padding: 0;
-            font-size: 14px;
-        }
-
-        .breadcrumb button:hover {
-            text-decoration: underline;
-        }
-
-        .breadcrumb .separator {
-            margin: 0 8px;
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
             gap: 16px;
-            margin-bottom: 24px;
         }
 
         .card {
-            background: #f9fafb;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
-            padding: 16px;
+            padding: 18px;
+            background: #fff;
             cursor: pointer;
-            transition: all 0.2s;
+            min-height: 110px;
         }
 
         .card:hover {
-            border-color: #2563eb;
-            background: #f3f4f6;
+            border-color: #93c5fd;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
         }
 
         .card-title {
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 800;
             margin-bottom: 8px;
-            font-size: 16px;
+            word-break: break-word;
+        }
+
+        .card-meta {
+            color: #6b7280;
+            font-size: 13px;
         }
 
         .card-actions {
+            margin-top: 18px;
             display: flex;
-            gap: 8px;
-            margin-top: 12px;
+            justify-content: flex-end;
         }
 
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 12px;
-            border-radius: 4px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            cursor: pointer;
+        .delete-btn {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 7px 10px;
+            font-size: 13px;
         }
 
-        .btn-sm:hover {
-            background: #1d4ed8;
+        .delete-btn:hover { background: #fecaca; }
+
+        .secondary-btn {
+            background: #eef2f7;
+            color: #1f2937;
         }
 
-        .btn-danger {
-            background: #dc2626;
-        }
+        .secondary-btn:hover { background: #dfe7f1; }
 
-        .btn-danger:hover {
-            background: #b91c1c;
-        }
-
-        .btn-add {
-            background: #16a34a;
-            margin-top: 16px;
-            width: 100%;
-            color: white;
-            border: none;
-        }
-
-        .btn-add:hover {
-            background: #15803d;
-        }
-
-        .detail-view {
-            background: #f9fafb;
+        .detail {
             border: 1px solid #e5e7eb;
             border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-
-        .detail-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 24px;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-        }
-
-        .detail-title:hover {
-            background: #f0f0f0;
-        }
-
-        .hidden {
-            display: none !important;
+            padding: 20px;
+            background: #fff;
         }
 
         .tabs {
             display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
+            gap: 0;
             border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 20px;
+            overflow-x: auto;
         }
 
         .tab-btn {
-            background: none;
-            border: none;
-            padding: 12px 16px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #666;
+            background: transparent;
+            color: #6b7280;
+            border-radius: 0;
+            padding: 14px 18px;
             border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            background: #f9fafb;
+            color: #111827;
         }
 
         .tab-btn.active {
@@ -281,223 +215,118 @@
             border-bottom-color: #2563eb;
         }
 
-        .tab-content {
+        .panel {
             display: none;
         }
 
-        .tab-content.active {
+        .panel.active {
             display: block;
         }
 
-        .phase-section {
-            background: white;
-            border: 1px solid #e5e7eb;
+        .phase {
+            border: 1px solid #dbeafe;
+            background: #eff6ff;
             border-radius: 8px;
             padding: 16px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .phase-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            gap: 12px;
+            margin-bottom: 14px;
         }
 
         .phase-title {
-            font-weight: 600;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            flex: 1;
+            font-size: 17px;
+            font-weight: 800;
         }
 
-        .phase-title:hover {
-            background: #f0f0f0;
-        }
-
-        .task-item {
+        .task {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px;
-            margin: 4px 0;
-            border-radius: 4px;
-        }
-
-        .task-item:hover {
-            background: #f0f0f0;
+            gap: 10px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
         }
 
         .task-text {
             flex: 1;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-        }
-
-        .task-text:hover {
-            background: #e0e0e0;
-        }
-
-        .task-text.completed {
-            text-decoration: line-through;
-            color: #999;
-        }
-
-        .comment-section {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 16px;
-        }
-
-        .comment-item {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 12px;
-        }
-
-        .comment-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 12px;
-            color: #666;
-        }
-
-        .comment-content {
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 4px;
-            white-space: pre-wrap;
             word-break: break-word;
         }
 
-        .comment-content:hover {
-            background: #f0f0f0;
-        }
-
-        .comment-form {
-            display: flex;
-            gap: 8px;
-            margin-top: 16px;
+        .task-text.done {
+            text-decoration: line-through;
+            color: #9ca3af;
         }
 
         textarea {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #e5e7eb;
-            border-radius: 4px;
-            font-family: inherit;
-            font-size: 14px;
-            min-height: 80px;
+            width: 100%;
+            min-height: 110px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 15px;
             resize: vertical;
+            margin-bottom: 12px;
         }
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
+        .history {
+            margin-top: 20px;
+            display: grid;
+            gap: 12px;
         }
 
-        .modal.show {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 8px;
-            padding: 24px;
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .modal-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-
-        .modal-input {
-            width: 100%;
-            padding: 8px;
+        .history-item {
             border: 1px solid #e5e7eb;
-            border-radius: 4px;
-            font-size: 14px;
-            margin-bottom: 16px;
-            font-family: inherit;
+            border-radius: 8px;
+            padding: 14px;
+            background: #f9fafb;
         }
 
-        .modal-buttons {
+        .history-date {
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .history-text {
+            white-space: pre-wrap;
+            line-height: 1.7;
+            word-break: break-word;
+        }
+
+        .row-actions {
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
         }
 
-        .modal-btn {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
+        .empty {
+            color: #6b7280;
+            padding: 24px;
+            text-align: center;
+            border: 1px dashed #d1d5db;
+            border-radius: 8px;
+            background: #f9fafb;
         }
 
-        .modal-btn-primary {
-            background: #2563eb;
-            color: white;
-        }
-
-        .modal-btn-primary:hover {
-            background: #1d4ed8;
-        }
-
-        .modal-btn-secondary {
-            background: #e5e7eb;
-            color: #1f2937;
-        }
-
-        .modal-btn-secondary:hover {
-            background: #d1d5db;
-        }
-
-        .visually-hidden {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-        }
-
-        @media (max-width: 520px) {
-            body {
-                padding: 16px;
-            }
-
-            .container,
-            .login-panel {
-                padding: 24px;
-            }
-
+        @media (max-width: 640px) {
             .app-header {
+                height: auto;
+                padding: 18px;
                 align-items: stretch;
                 flex-direction: column;
             }
 
-            .logout-btn {
-                width: 100%;
-            }
+            .app-body { padding: 18px; }
+            .logout-btn { width: 100%; }
         }
     </style>
 </head>
@@ -506,613 +335,546 @@
         <section class="login-container" id="loginSection">
             <div class="login-panel">
                 <div class="error-message" id="errorMessage"></div>
-
                 <h1>My Contents</h1>
-                <p>Googleアカウントでログインするとポートフォリオが表示されます。</p>
+                <p>Googleアカウントでログインするとコンテンツが表示されます。</p>
                 <button class="login-button" id="loginBtn" type="button">Googleでログイン</button>
             </div>
         </section>
 
-        <section class="container hidden" id="portfolioSection" aria-live="polite">
-            <div class="error-message" id="appErrorMessage"></div>
-
+        <section class="app hidden" id="portfolioSection" aria-live="polite">
             <header class="app-header">
                 <h1 class="app-title">タイトル</h1>
                 <button class="logout-btn" id="logoutBtn" type="button">ログアウト</button>
             </header>
 
-            <span class="visually-hidden" id="userEmail"></span>
+            <div class="app-body">
+                <div class="error-message" id="appErrorMessage"></div>
 
-            <div id="portfolioContent">
-                <div class="breadcrumb" id="breadcrumb">
-                    <button onclick="goHome()">ホーム</button>
+                <div class="toolbar">
+                    <nav class="breadcrumb" id="breadcrumb"></nav>
+                    <div id="mainActions"></div>
                 </div>
 
-                <div id="homeView">
-                    <h2 style="margin-bottom: 16px;">カテゴリー</h2>
-                    <div class="grid" id="categoriesGrid"></div>
-                    <button class="btn-add" onclick="openAddCategoryModal()">+ カテゴリー追加</button>
-                </div>
-
-                <div id="projectsView" class="hidden">
-                    <div class="detail-view">
-                        <h2 class="detail-title" id="projectsTitle" ondblclick="editCategoryName()"></h2>
-                    </div>
-                    <div class="grid" id="projectsGrid"></div>
-                    <button class="btn-add" onclick="openAddProjectModal()">+ プロジェクト追加</button>
-                </div>
-
-                <div id="itemsView" class="hidden">
-                    <div class="detail-view">
-                        <h2 class="detail-title" id="itemsTitle" ondblclick="editProjectName()"></h2>
-                    </div>
-                    <div class="grid" id="itemsGrid"></div>
-                    <button class="btn-add" onclick="openAddItemModal()">+ アイテム追加</button>
-                </div>
-
-                <div id="itemDetailView" class="hidden">
-                    <div class="detail-view">
-                        <h2 class="detail-title" id="itemDetailTitle" ondblclick="editItemName()"></h2>
-                    </div>
-
-                    <div class="tabs" id="tabs"></div>
-                    <div id="tabContents"></div>
-                </div>
+                <div id="appContent"></div>
             </div>
         </section>
     </main>
 
-    <div class="modal" id="addModal">
-        <div class="modal-content">
-            <div class="modal-title" id="modalTitle"></div>
-            <input type="text" class="modal-input" id="modalInput" placeholder="">
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-primary" onclick="confirmAddModal()">作成</button>
-                <button class="modal-btn modal-btn-secondary" onclick="closeModal()">キャンセル</button>
-            </div>
-        </div>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import {
+            getAuth,
+            GoogleAuthProvider,
+            signInWithPopup,
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import {
+            getDatabase,
+            ref,
+            get,
+            set,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
-    <script>
-        // グローバル状態
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2CH410X3yk4YTJWFC2JyEWScXZn77Z3I",
+            authDomain: "my-portfolio-d3560.firebaseapp.com",
+            databaseURL: "https://my-portfolio-d3560-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "my-portfolio-d3560",
+            storageBucket: "my-portfolio-d3560.firebasestorage.app",
+            messagingSenderId: "293517847141",
+            appId: "1:293517847141:web:bec173cf345b47cf91f48c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+        const provider = new GoogleAuthProvider();
+
+        const loginSection = document.getElementById("loginSection");
+        const portfolioSection = document.getElementById("portfolioSection");
+        const loginBtn = document.getElementById("loginBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const errorMessage = document.getElementById("errorMessage");
+        const appErrorMessage = document.getElementById("appErrorMessage");
+        const breadcrumb = document.getElementById("breadcrumb");
+        const mainActions = document.getElementById("mainActions");
+        const appContent = document.getElementById("appContent");
+
         let currentUser = null;
-        let appData = { categories: [] };
-        let currentView = { category: null, project: null, item: null };
-        let modalCallback = null;
+        let data = { categories: [] };
+        let view = { categoryId: null, projectId: null, itemId: null, tab: "roadmap" };
 
-        // Firebase初期化後のデータ処理
-        auth.onAuthStateChanged(async (user) => {
+        loginBtn.addEventListener("click", async () => {
+            clearError();
+            loginBtn.disabled = true;
+
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                showError(toJapaneseError(error));
+                console.error(error);
+            } finally {
+                loginBtn.disabled = false;
+            }
+        });
+
+        logoutBtn.addEventListener("click", async () => {
+            clearError();
+            await signOut(auth);
+        });
+
+        onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                showLoginUI();
+                currentUser = null;
+                loginSection.classList.remove("hidden");
+                portfolioSection.classList.add("hidden");
                 return;
             }
+
             currentUser = user;
-            userEmail.textContent = user.email || user.displayName || user.uid;
             loginSection.classList.add("hidden");
             portfolioSection.classList.remove("hidden");
-            
-            // Firebaseからデータを読み込む
-            try {
-                const snapshot = await database.ref(`users/${user.uid}`).once('value');
-                if (snapshot.exists()) {
-                    appData = snapshot.val();
-                } else {
-                    appData = { categories: [] };
-                }
-                goHome();
-            } catch (error) {
-                console.error('データ読み込みエラー:', error);
-                appData = { categories: [] };
-                goHome();
-            }
+
+            await set(ref(database, `loginUsers/${user.uid}`), {
+                uid: user.uid,
+                name: user.displayName || "",
+                email: user.email || "",
+                lastLoginAt: serverTimestamp()
+            });
+
+            await loadData();
+            render();
         });
 
-        // Firebase保存
-        async function saveToFirebase() {
+        async function loadData() {
+            const snapshot = await get(ref(database, `users/${currentUser.uid}/portfolioData`));
+            data = snapshot.exists() ? snapshot.val() : { categories: [] };
+            if (!Array.isArray(data.categories)) data.categories = [];
+        }
+
+        async function saveData() {
             if (!currentUser) return;
-            try {
-                await database.ref(`users/${currentUser.uid}`).set(appData);
-                console.log('Firebase保存成功');
-            } catch (error) {
-                console.error('Firebase保存エラー:', error);
-                showError('保存に失敗しました: ' + error.message);
-            }
+            await set(ref(database, `users/${currentUser.uid}/portfolioData`), data);
         }
 
-        // ナビゲーション
-        function goHome() {
-            currentView = { category: null, project: null, item: null };
-            document.getElementById('homeView').classList.remove('hidden');
-            document.getElementById('projectsView').classList.add('hidden');
-            document.getElementById('itemsView').classList.add('hidden');
-            document.getElementById('itemDetailView').classList.add('hidden');
-            updateBreadcrumb();
-            renderCategories();
+        async function persistAndRender() {
+            await saveData();
+            render();
         }
 
-        function updateBreadcrumb() {
-            let html = '<button onclick="goHome()">ホーム</button>';
-            if (currentView.category) {
-                const cat = appData.categories.find(c => c.id === currentView.category);
-                if (cat) html += `<span class="separator"> > </span><button onclick="showProjects('${currentView.category}')">${escapeHtml(cat.name)}</button>`;
-            }
-            if (currentView.project) {
-                const cat = appData.categories.find(c => c.id === currentView.category);
-                const proj = cat?.projects?.find(p => p.id === currentView.project);
-                if (proj) html += `<span class="separator"> > </span><button onclick="showItems('${currentView.category}', '${currentView.project}')">${escapeHtml(proj.name)}</button>`;
-            }
-            if (currentView.item) {
-                const item = getItem();
-                if (item) html += `<span class="separator"> > </span><span>${escapeHtml(item.name)}</span>`;
-            }
-            document.getElementById('breadcrumb').innerHTML = html;
+        function uid() {
+            return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
         }
 
-        // 大項目（カテゴリー）
-        function renderCategories() {
-            const grid = document.getElementById('categoriesGrid');
-            grid.innerHTML = appData.categories.map(cat => `
-                <div class="card" onclick="showProjects('${cat.id}')">
-                    <div class="card-title">${escapeHtml(cat.name)}</div>
-                    <div style="font-size: 12px; color: #666; margin-bottom: 8px;">${cat.projects?.length || 0} プロジェクト</div>
-                    <div class="card-actions">
-                        <button class="btn-sm" onclick="event.stopPropagation(); editCategoryNameDirect('${cat.id}')">編集</button>
-                        <button class="btn-sm btn-danger" onclick="event.stopPropagation(); deleteCategory('${cat.id}')">削除</button>
-                    </div>
-                </div>
-            `).join('');
+        function escapeHtml(value) {
+            return String(value ?? "").replace(/[&<>"']/g, (s) => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;"
+            }[s]));
         }
 
-        function showProjects(catId) {
-            currentView.category = catId;
-            currentView.project = null;
-            currentView.item = null;
-            const cat = appData.categories.find(c => c.id === catId);
-            if (!cat) return;
-
-            document.getElementById('homeView').classList.add('hidden');
-            document.getElementById('projectsView').classList.remove('hidden');
-            document.getElementById('itemsView').classList.add('hidden');
-            document.getElementById('itemDetailView').classList.add('hidden');
-            document.getElementById('projectsTitle').textContent = cat.name;
-            updateBreadcrumb();
-
-            const grid = document.getElementById('projectsGrid');
-            grid.innerHTML = (cat.projects || []).map(proj => `
-                <div class="card" onclick="showItems('${catId}', '${proj.id}')">
-                    <div class="card-title">${escapeHtml(proj.name)}</div>
-                    <div style="font-size: 12px; color: #666; margin-bottom: 8px;">${proj.items?.length || 0} アイテム</div>
-                    <div class="card-actions">
-                        <button class="btn-sm" onclick="event.stopPropagation(); editProjectNameDirect('${proj.id}')">編集</button>
-                        <button class="btn-sm btn-danger" onclick="event.stopPropagation(); deleteProject('${catId}', '${proj.id}')">削除</button>
-                    </div>
-                </div>
-            `).join('');
+        function today() {
+            const d = new Date();
+            return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`;
         }
 
-        function editCategoryNameDirect(catId) {
-            const cat = appData.categories.find(c => c.id === catId);
-            if (!cat) return;
-            openEditModal(cat.name, (newName) => {
-                cat.name = newName;
-                saveToFirebase();
-                renderCategories();
-            });
+        function getCategory() {
+            return data.categories.find((c) => c.id === view.categoryId);
         }
 
-        function editCategoryName() {
-            const cat = appData.categories.find(c => c.id === currentView.category);
-            if (!cat) return;
-            openEditModal(cat.name, (newName) => {
-                cat.name = newName;
-                saveToFirebase();
-                showProjects(currentView.category);
-            });
+        function getProject() {
+            return getCategory()?.projects?.find((p) => p.id === view.projectId);
         }
 
-        function deleteCategory(catId) {
-            if (!confirm('削除しますか？')) return;
-            appData.categories = appData.categories.filter(c => c.id !== catId);
-            saveToFirebase();
-            goHome();
-        }
-
-        // 中項目（プロジェクト）
-        function showItems(catId, projId) {
-            currentView.category = catId;
-            currentView.project = projId;
-            currentView.item = null;
-            const cat = appData.categories.find(c => c.id === catId);
-            const proj = cat?.projects?.find(p => p.id === projId);
-            if (!proj) return;
-
-            document.getElementById('homeView').classList.add('hidden');
-            document.getElementById('projectsView').classList.add('hidden');
-            document.getElementById('itemsView').classList.remove('hidden');
-            document.getElementById('itemDetailView').classList.add('hidden');
-            document.getElementById('itemsTitle').textContent = proj.name;
-            updateBreadcrumb();
-
-            const grid = document.getElementById('itemsGrid');
-            grid.innerHTML = (proj.items || []).map(item => `
-                <div class="card" onclick="showItemDetail('${item.id}')">
-                    <div class="card-title">${escapeHtml(item.name)}</div>
-                    <div class="card-actions">
-                        <button class="btn-sm" onclick="event.stopPropagation(); editItemNameDirect('${item.id}')">編集</button>
-                        <button class="btn-sm btn-danger" onclick="event.stopPropagation(); deleteItem('${item.id}')">削除</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function editProjectNameDirect(projId) {
-            const cat = appData.categories.find(c => c.id === currentView.category);
-            const proj = cat?.projects?.find(p => p.id === projId);
-            if (!proj) return;
-            openEditModal(proj.name, (newName) => {
-                proj.name = newName;
-                saveToFirebase();
-                showProjects(currentView.category);
-            });
-        }
-
-        function editProjectName() {
-            const cat = appData.categories.find(c => c.id === currentView.category);
-            const proj = cat?.projects?.find(p => p.id === currentView.project);
-            if (!proj) return;
-            openEditModal(proj.name, (newName) => {
-                proj.name = newName;
-                saveToFirebase();
-                showItems(currentView.category, currentView.project);
-            });
-        }
-
-        function deleteProject(catId, projId) {
-            if (!confirm('削除しますか？')) return;
-            const cat = appData.categories.find(c => c.id === catId);
-            if (cat) {
-                cat.projects = (cat.projects || []).filter(p => p.id !== projId);
-                saveToFirebase();
-                showProjects(catId);
-            }
-        }
-
-        // 小項目
-        function showItemDetail(itemId) {
-            currentView.item = itemId;
-            const item = getItem();
-            if (!item) return;
-
-            document.getElementById('homeView').classList.add('hidden');
-            document.getElementById('projectsView').classList.add('hidden');
-            document.getElementById('itemsView').classList.add('hidden');
-            document.getElementById('itemDetailView').classList.remove('hidden');
-            document.getElementById('itemDetailTitle').textContent = item.name;
-            updateBreadcrumb();
-
-            renderItemTabs(item);
-        }
-
-        function editItemNameDirect(itemId) {
-            currentView.item = itemId;
-            editItemName();
-        }
-
-        function editItemName() {
-            const item = getItem();
-            if (!item) return;
-            openEditModal(item.name, (newName) => {
-                item.name = newName;
-                saveToFirebase();
-                showItemDetail(currentView.item);
-            });
-        }
-
-        function deleteItem(itemId) {
-            if (!confirm('削除しますか？')) return;
-            const cat = appData.categories.find(c => c.id === currentView.category);
-            const proj = cat?.projects?.find(p => p.id === currentView.project);
-            if (proj) {
-                proj.items = (proj.items || []).filter(i => i.id !== itemId);
-                saveToFirebase();
-                showItems(currentView.category, currentView.project);
-            }
-        }
-
-        // アイテム詳細（タブ）
-        function renderItemTabs(item) {
-            const tabsContainer = document.getElementById('tabs');
-            tabsContainer.innerHTML = `
-                <button class="tab-btn active" onclick="switchTab('roadmap')">🗺️ ロードマップ</button>
-                <button class="tab-btn" onclick="switchTab('issues')">⚠️ 課題</button>
-                <button class="tab-btn" onclick="switchTab('status')">📊 現状</button>
-                <button class="tab-btn" onclick="switchTab('stumbles')">🚧 躓き履歴</button>
-            `;
-
-            const contentsContainer = document.getElementById('tabContents');
-            contentsContainer.innerHTML = `
-                <div id="roadmap-tab" class="tab-content active">${renderRoadmap(item)}</div>
-                <div id="issues-tab" class="tab-content">${renderCommentSection(item, 'issues')}</div>
-                <div id="status-tab" class="tab-content">${renderCommentSection(item, 'status')}</div>
-                <div id="stumbles-tab" class="tab-content">${renderCommentSection(item, 'stumbles')}</div>
-            `;
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById(tabName + '-tab').classList.add('active');
-        }
-
-        // ロードマップ
-        function renderRoadmap(item) {
-            let html = '<div class="comment-section">';
-            (item.phases || []).forEach((phase, pidx) => {
-                const completed = phase.tasks?.filter(t => t.completed).length || 0;
-                const total = phase.tasks?.length || 0;
-                html += `
-                    <div class="phase-section">
-                        <div class="phase-header">
-                            <div class="phase-title" ondblclick="editPhaseName(${pidx})">${escapeHtml(phase.name)}</div>
-                            <span style="font-size: 12px; color: #666;">${completed}/${total}</span>
-                            <button class="btn-sm btn-danger" onclick="deletePhase(${pidx})">削除</button>
-                        </div>
-                        <div>
-                            ${(phase.tasks || []).map((task, tidx) => `
-                                <div class="task-item">
-                                    <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${pidx}, ${tidx})">
-                                    <span class="task-text ${task.completed ? 'completed' : ''}" ondblclick="editTaskName(${pidx}, ${tidx})">${escapeHtml(task.name)}</span>
-                                    <button class="btn-sm btn-danger" onclick="deleteTask(${pidx}, ${tidx})">削除</button>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <button class="btn-sm" onclick="openAddTaskModal(${pidx})" style="margin-top: 8px;">+ タスク</button>
-                    </div>
-                `;
-            });
-            html += `<button class="btn-sm" onclick="openAddPhaseModal()" style="margin-top: 16px;">+ フェーズ</button>`;
-            html += '</div>';
-            return html;
-        }
-
-        function openAddPhaseModal() {
-            openAddModal('フェーズ名', (name) => {
-                const item = getItem();
-                if (!item.phases) item.phases = [];
-                item.phases.push({ id: generateId(), name, tasks: [] });
-                saveToFirebase();
-                renderItemTabs(item);
-            });
-        }
-
-        function editPhaseName(pidx) {
-            const item = getItem();
-            const phase = item.phases[pidx];
-            openEditModal(phase.name, (newName) => {
-                phase.name = newName;
-                saveToFirebase();
-                renderItemTabs(item);
-            });
-        }
-
-        function deletePhase(pidx) {
-            if (!confirm('削除しますか？')) return;
-            const item = getItem();
-            item.phases.splice(pidx, 1);
-            saveToFirebase();
-            renderItemTabs(item);
-        }
-
-        function openAddTaskModal(pidx) {
-            openAddModal('タスク名', (name) => {
-                const item = getItem();
-                if (!item.phases[pidx].tasks) item.phases[pidx].tasks = [];
-                item.phases[pidx].tasks.push({ id: generateId(), name, completed: false });
-                saveToFirebase();
-                renderItemTabs(item);
-            });
-        }
-
-        function editTaskName(pidx, tidx) {
-            const item = getItem();
-            const task = item.phases[pidx].tasks[tidx];
-            openEditModal(task.name, (newName) => {
-                task.name = newName;
-                saveToFirebase();
-                renderItemTabs(item);
-            });
-        }
-
-        function toggleTask(pidx, tidx) {
-            const item = getItem();
-            item.phases[pidx].tasks[tidx].completed = !item.phases[pidx].tasks[tidx].completed;
-            saveToFirebase();
-            renderItemTabs(item);
-        }
-
-        function deleteTask(pidx, tidx) {
-            if (!confirm('削除しますか？')) return;
-            const item = getItem();
-            item.phases[pidx].tasks.splice(tidx, 1);
-            saveToFirebase();
-            renderItemTabs(item);
-        }
-
-        // コメント機能
-        function renderCommentSection(item, type) {
-            const commentsKey = type + 'Comments';
-            const comments = item[commentsKey] || [];
-            let html = '<div class="comment-section">';
-            
-            comments.forEach((comment, cidx) => {
-                const time = new Date(comment.timestamp).toLocaleString('ja-JP');
-                html += `
-                    <div class="comment-item">
-                        <div class="comment-header">
-                            <span>${time}</span>
-                            <button class="btn-sm btn-danger" onclick="deleteComment('${type}', ${cidx})">削除</button>
-                        </div>
-                        <div class="comment-content" ondblclick="editComment('${type}', ${cidx})">${escapeHtml(comment.content)}</div>
-                    </div>
-                `;
-            });
-
-            html += `
-                <div class="comment-form">
-                    <textarea id="${type}-input" placeholder="コメントを入力..."></textarea>
-                    <button class="btn-sm" onclick="addComment('${type}')" style="padding: 12px 16px;">送信</button>
-                </div>
-            `;
-            html += '</div>';
-            return html;
-        }
-
-        function addComment(type) {
-            const input = document.getElementById(type + '-input');
-            const content = input.value.trim();
-            if (!content) return;
-
-            const item = getItem();
-            const commentsKey = type + 'Comments';
-            if (!item[commentsKey]) item[commentsKey] = [];
-            item[commentsKey].push({ id: generateId(), content, timestamp: new Date().toISOString() });
-            input.value = '';
-            saveToFirebase();
-            renderItemTabs(item);
-        }
-
-        function editComment(type, cidx) {
-            const item = getItem();
-            const commentsKey = type + 'Comments';
-            const comment = item[commentsKey][cidx];
-            openEditModal(comment.content, (newContent) => {
-                comment.content = newContent;
-                saveToFirebase();
-                renderItemTabs(item);
-            });
-        }
-
-        function deleteComment(type, cidx) {
-            if (!confirm('削除しますか？')) return;
-            const item = getItem();
-            const commentsKey = type + 'Comments';
-            item[commentsKey].splice(cidx, 1);
-            saveToFirebase();
-            renderItemTabs(item);
-        }
-
-        // モーダル
-        function openAddModal(title, callback) {
-            document.getElementById('modalTitle').textContent = '追加：' + title;
-            document.getElementById('modalInput').value = '';
-            document.getElementById('modalInput').placeholder = title;
-            modalCallback = callback;
-            document.getElementById('addModal').classList.add('show');
-            document.getElementById('modalInput').focus();
-        }
-
-        function openEditModal(currentValue, callback) {
-            document.getElementById('modalTitle').textContent = '編集';
-            document.getElementById('modalInput').value = currentValue;
-            modalCallback = callback;
-            document.getElementById('addModal').classList.add('show');
-            document.getElementById('modalInput').focus();
-        }
-
-        function openAddCategoryModal() {
-            openAddModal('カテゴリー名', (name) => {
-                appData.categories.push({ id: generateId(), name, projects: [] });
-                saveToFirebase();
-                renderCategories();
-            });
-        }
-
-        function openAddProjectModal() {
-            openAddModal('プロジェクト名', (name) => {
-                const cat = appData.categories.find(c => c.id === currentView.category);
-                if (!cat.projects) cat.projects = [];
-                cat.projects.push({ id: generateId(), name, items: [] });
-                saveToFirebase();
-                showProjects(currentView.category);
-            });
-        }
-
-        function openAddItemModal() {
-            openAddModal('アイテム名', (name) => {
-                const cat = appData.categories.find(c => c.id === currentView.category);
-                const proj = cat?.projects?.find(p => p.id === currentView.project);
-                if (!proj.items) proj.items = [];
-                proj.items.push({ id: generateId(), name, phases: [], issuesComments: [], statusComments: [], stumblesComments: [] });
-                saveToFirebase();
-                showItems(currentView.category, currentView.project);
-            });
-        }
-
-        function confirmAddModal() {
-            const value = document.getElementById('modalInput').value.trim();
-            if (value && modalCallback) {
-                modalCallback(value);
-                closeModal();
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('addModal').classList.remove('show');
-            modalCallback = null;
-        }
-
-        document.getElementById('modalInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') confirmAddModal();
-        });
-
-        // ユーティリティ
         function getItem() {
-            const cat = appData.categories.find(c => c.id === currentView.category);
-            const proj = cat?.projects?.find(p => p.id === currentView.project);
-            return proj?.items?.find(i => i.id === currentView.item);
+            return getProject()?.items?.find((i) => i.id === view.itemId);
         }
 
-        function generateId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        function ensureItemShape(item) {
+            item.phases ||= [];
+            item.issues ||= [];
+            item.statuses ||= [];
+            item.stumbles ||= [];
         }
 
-        function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
+        function render() {
+            renderBreadcrumb();
+
+            if (!view.categoryId) return renderCategories();
+            if (!view.projectId) return renderProjects();
+            if (!view.itemId) return renderItems();
+            return renderItemDetail();
         }
 
-        // グローバルスコープで関数を公開
-        window.goHome = goHome;
-        window.showProjects = showProjects;
-        window.showItems = showItems;
-        window.showItemDetail = showItemDetail;
-        window.switchTab = switchTab;
-        window.editCategoryName = editCategoryName;
-        window.editCategoryNameDirect = editCategoryNameDirect;
-        window.deleteCategory = deleteCategory;
-        window.editProjectName = editProjectName;
-        window.editProjectNameDirect = editProjectNameDirect;
-        window.deleteProject = deleteProject;
-        window.editItemName = editItemName;
-        window.editItemNameDirect = editItemNameDirect;
-        window.deleteItem = deleteItem;
-        window.editPhaseName = editPhaseName;
-        window.deletePhase = deletePhase;
-        window.openAddPhaseModal = openAddPhaseModal;
-        window.openAddTaskModal = openAddTaskModal;
-        window.editTaskName = editTaskName;
-        window.toggleTask = toggleTask;
-        window.deleteTask = deleteTask;
-        window.addComment = addComment;
-        window.editComment = editComment;
-        window.deleteComment = deleteComment;
-        window.openAddCategoryModal = openAddCategoryModal;
-        window.openAddProjectModal = openAddProjectModal;
-        window.openAddItemModal = openAddItemModal;
-        window.confirmAddModal = confirmAddModal;
-        window.closeModal = closeModal;
+        function renderBreadcrumb() {
+            const cat = getCategory();
+            const proj = getProject();
+            const item = getItem();
+
+            breadcrumb.innerHTML = `
+                <button type="button" data-go="home">目次</button>
+                ${cat ? `<span>/</span><button type="button" data-go="category">${escapeHtml(cat.name)}</button>` : ""}
+                ${proj ? `<span>/</span><button type="button" data-go="project">${escapeHtml(proj.name)}</button>` : ""}
+                ${item ? `<span>/</span><span>${escapeHtml(item.name)}</span>` : ""}
+            `;
+
+            breadcrumb.querySelector('[data-go="home"]')?.addEventListener("click", () => {
+                view = { categoryId: null, projectId: null, itemId: null, tab: "roadmap" };
+                render();
+            });
+
+            breadcrumb.querySelector('[data-go="category"]')?.addEventListener("click", () => {
+                view.projectId = null;
+                view.itemId = null;
+                render();
+            });
+
+            breadcrumb.querySelector('[data-go="project"]')?.addEventListener("click", () => {
+                view.itemId = null;
+                render();
+            });
+        }
+
+        function renderCategories() {
+            mainActions.innerHTML = `<button type="button" id="addCategoryBtn">大項目を追加</button>`;
+            appContent.innerHTML = data.categories.length
+                ? `<div class="grid">${data.categories.map((cat) => cardHtml(cat, cat.projects?.length || 0, "中項目")).join("")}</div>`
+                : `<div class="empty">大項目がありません。</div>`;
+
+            document.getElementById("addCategoryBtn").addEventListener("click", addCategory);
+
+            appContent.querySelectorAll(".card").forEach((card) => {
+                card.addEventListener("click", () => {
+                    view.categoryId = card.dataset.id;
+                    render();
+                });
+            });
+
+            bindCardEditing(data.categories, "大項目名");
+        }
+
+        function renderProjects() {
+            const cat = getCategory();
+            cat.projects ||= [];
+
+            mainActions.innerHTML = `<button type="button" id="addProjectBtn">中項目を追加</button>`;
+            appContent.innerHTML = cat.projects.length
+                ? `<div class="grid">${cat.projects.map((proj) => cardHtml(proj, proj.items?.length || 0, "小項目")).join("")}</div>`
+                : `<div class="empty">中項目がありません。</div>`;
+
+            document.getElementById("addProjectBtn").addEventListener("click", addProject);
+
+            appContent.querySelectorAll(".card").forEach((card) => {
+                card.addEventListener("click", () => {
+                    view.projectId = card.dataset.id;
+                    render();
+                });
+            });
+
+            bindCardEditing(cat.projects, "中項目名");
+        }
+
+        function renderItems() {
+            const proj = getProject();
+            proj.items ||= [];
+
+            mainActions.innerHTML = `<button type="button" id="addItemBtn">小項目を追加</button>`;
+            appContent.innerHTML = proj.items.length
+                ? `<div class="grid">${proj.items.map((item) => cardHtml(item, 4, "項目セット")).join("")}</div>`
+                : `<div class="empty">小項目がありません。</div>`;
+
+            document.getElementById("addItemBtn").addEventListener("click", addItem);
+
+            appContent.querySelectorAll(".card").forEach((card) => {
+                card.addEventListener("click", () => {
+                    view.itemId = card.dataset.id;
+                    view.tab = "roadmap";
+                    render();
+                });
+            });
+
+            bindCardEditing(proj.items, "小項目名");
+        }
+
+        function cardHtml(entity, count, label) {
+            return `
+                <article class="card" data-id="${entity.id}">
+                    <div class="card-title" data-title>${escapeHtml(entity.name)}</div>
+                    <div class="card-meta">${count} ${label}</div>
+                    <div class="card-actions">
+                        <button class="delete-btn" type="button" data-delete="${entity.id}">削除</button>
+                    </div>
+                </article>
+            `;
+        }
+
+        function bindCardEditing(list, label) {
+            appContent.querySelectorAll("[data-title]").forEach((title) => {
+                title.addEventListener("dblclick", async (event) => {
+                    event.stopPropagation();
+                    const id = title.closest(".card").dataset.id;
+                    const target = list.find((entry) => entry.id === id);
+                    const name = prompt(`${label}を編集`, target.name);
+                    if (!name?.trim()) return;
+                    target.name = name.trim();
+                    await persistAndRender();
+                });
+            });
+
+            appContent.querySelectorAll("[data-delete]").forEach((btn) => {
+                btn.addEventListener("click", async (event) => {
+                    event.stopPropagation();
+                    if (!confirm("削除しますか？")) return;
+                    const id = btn.dataset.delete;
+                    const index = list.findIndex((entry) => entry.id === id);
+                    if (index >= 0) list.splice(index, 1);
+                    await persistAndRender();
+                });
+            });
+        }
+
+        async function addCategory() {
+            const name = prompt("大項目名");
+            if (!name?.trim()) return;
+            data.categories.push({ id: uid(), name: name.trim(), projects: [] });
+            await persistAndRender();
+        }
+
+        async function addProject() {
+            const name = prompt("中項目名");
+            if (!name?.trim()) return;
+            const cat = getCategory();
+            cat.projects ||= [];
+            cat.projects.push({ id: uid(), name: name.trim(), items: [] });
+            await persistAndRender();
+        }
+
+        async function addItem() {
+            const name = prompt("小項目名");
+            if (!name?.trim()) return;
+            const proj = getProject();
+            proj.items ||= [];
+            proj.items.push({
+                id: uid(),
+                name: name.trim(),
+                phases: [],
+                issues: [],
+                statuses: [],
+                stumbles: []
+            });
+            await persistAndRender();
+        }
+
+        function renderItemDetail() {
+            const item = getItem();
+            ensureItemShape(item);
+
+            mainActions.innerHTML = "";
+            appContent.innerHTML = `
+                <section class="detail">
+                    <div class="tabs">
+                        <button class="tab-btn ${view.tab === "roadmap" ? "active" : ""}" data-tab="roadmap">ロードマップ</button>
+                        <button class="tab-btn ${view.tab === "issues" ? "active" : ""}" data-tab="issues">課題</button>
+                        <button class="tab-btn ${view.tab === "status" ? "active" : ""}" data-tab="status">現状</button>
+                        <button class="tab-btn ${view.tab === "stumbles" ? "active" : ""}" data-tab="stumbles">躓き履歴</button>
+                    </div>
+
+                    <div id="tabContent"></div>
+                </section>
+            `;
+
+            appContent.querySelectorAll("[data-tab]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    view.tab = btn.dataset.tab;
+                    renderItemDetail();
+                });
+            });
+
+            if (view.tab === "roadmap") renderRoadmap(item);
+            if (view.tab === "issues") renderHistoryPanel(item, "issues", "課題コメント");
+            if (view.tab === "status") renderHistoryPanel(item, "statuses", "現状コメント");
+            if (view.tab === "stumbles") renderHistoryPanel(item, "stumbles", "躓き履歴コメント");
+        }
+
+        function renderRoadmap(item) {
+            const tabContent = document.getElementById("tabContent");
+
+            tabContent.innerHTML = `
+                <div class="row-actions" style="margin-bottom:16px;">
+                    <button type="button" id="addPhaseBtn">フェーズを追加</button>
+                </div>
+
+                ${item.phases.length ? item.phases.map((phase, phaseIndex) => `
+                    <div class="phase" data-phase="${phaseIndex}">
+                        <div class="phase-header">
+                            <div class="phase-title" data-phase-title>${escapeHtml(phase.title)}</div>
+                            <div class="row-actions" style="margin-top:0;">
+                                <button class="secondary-btn" type="button" data-add-task="${phaseIndex}">タスク追加</button>
+                                <button class="delete-btn" type="button" data-delete-phase="${phaseIndex}">削除</button>
+                            </div>
+                        </div>
+
+                        ${(phase.tasks || []).map((task, taskIndex) => `
+                            <div class="task" data-task="${taskIndex}">
+                                <input type="checkbox" ${task.done ? "checked" : ""} data-toggle-task="${phaseIndex}:${taskIndex}">
+                                <div class="task-text ${task.done ? "done" : ""}" data-task-text="${phaseIndex}:${taskIndex}">${escapeHtml(task.text)}</div>
+                                <button class="delete-btn" type="button" data-delete-task="${phaseIndex}:${taskIndex}">削除</button>
+                            </div>
+                        `).join("")}
+                    </div>
+                `).join("") : `<div class="empty">フェーズがありません。</div>`}
+            `;
+
+            document.getElementById("addPhaseBtn").addEventListener("click", async () => {
+                const title = prompt("フェーズ名", `フェーズ${item.phases.length + 1}`);
+                if (!title?.trim()) return;
+                item.phases.push({ id: uid(), title: title.trim(), tasks: [] });
+                await persistAndRender();
+            });
+
+            tabContent.querySelectorAll("[data-phase-title]").forEach((el) => {
+                el.addEventListener("dblclick", async () => {
+                    const index = Number(el.closest(".phase").dataset.phase);
+                    const title = prompt("フェーズ名を編集", item.phases[index].title);
+                    if (!title?.trim()) return;
+                    item.phases[index].title = title.trim();
+                    await persistAndRender();
+                });
+            });
+
+            tabContent.querySelectorAll("[data-add-task]").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    const phaseIndex = Number(btn.dataset.addTask);
+                    const text = prompt("タスク名");
+                    if (!text?.trim()) return;
+                    item.phases[phaseIndex].tasks ||= [];
+                    item.phases[phaseIndex].tasks.push({ id: uid(), text: text.trim(), done: false });
+                    await persistAndRender();
+                });
+            });
+
+            tabContent.querySelectorAll("[data-delete-phase]").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    if (!confirm("フェーズを削除しますか？")) return;
+                    item.phases.splice(Number(btn.dataset.deletePhase), 1);
+                    await persistAndRender();
+                });
+            });
+
+            tabContent.querySelectorAll("[data-toggle-task]").forEach((checkbox) => {
+                checkbox.addEventListener("change", async () => {
+                    const [phaseIndex, taskIndex] = checkbox.dataset.toggleTask.split(":").map(Number);
+                    item.phases[phaseIndex].tasks[taskIndex].done = checkbox.checked;
+                    await persistAndRender();
+                });
+            });
+
+            tabContent.querySelectorAll("[data-task-text]").forEach((el) => {
+                el.addEventListener("dblclick", async () => {
+                    const [phaseIndex, taskIndex] = el.dataset.taskText.split(":").map(Number);
+                    const task = item.phases[phaseIndex].tasks[taskIndex];
+                    const text = prompt("タスクを編集", task.text);
+                    if (!text?.trim()) return;
+                    task.text = text.trim();
+                    await persistAndRender();
+                });
+            });
+
+            tabContent.querySelectorAll("[data-delete-task]").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    if (!confirm("タスクを削除しますか？")) return;
+                    const [phaseIndex, taskIndex] = btn.dataset.deleteTask.split(":").map(Number);
+                    item.phases[phaseIndex].tasks.splice(taskIndex, 1);
+                    await persistAndRender();
+                });
+            });
+        }
+
+        function renderHistoryPanel(item, key, label) {
+            const tabContent = document.getElementById("tabContent");
+            item[key] ||= [];
+
+            tabContent.innerHTML = `
+                <textarea id="commentInput" placeholder="${label}を入力"></textarea>
+                <button type="button" id="addHistoryBtn">履歴に追加</button>
+
+                <div class="history">
+                    ${item[key].length ? item[key].map((entry, index) => `
+                        <article class="history-item" data-history="${index}">
+                            <div class="history-date">${escapeHtml(entry.date)}</div>
+                            <div class="history-text" data-history-text="${index}">${escapeHtml(entry.text)}</div>
+                            <div class="row-actions">
+                                <button class="delete-btn" type="button" data-delete-history="${index}">削除</button>
+                            </div>
+                        </article>
+                    `).join("") : `<div class="empty">履歴がありません。</div>`}
+                </div>
+            `;
+
+            document.getElementById("addHistoryBtn").addEventListener("click", async () => {
+                const input = document.getElementById("commentInput");
+                const text = input.value.trim();
+                if (!text) return;
+
+                item[key].unshift({
+                    id: uid(),
+                    date: today(),
+                    text
+                });
+
+                await persistAndRender();
+            });
+
+            tabContent.querySelectorAll("[data-history-text]").forEach((el) => {
+                el.addEventListener("dblclick", async () => {
+                    const index = Number(el.dataset.historyText);
+                    const text = prompt("コメントを編集", item[key][index].text);
+                    if (!text?.trim()) return;
+                    item[key][index].text = text.trim();
+                    await persistAndRender();
+                });
+            });
+
+            tabContent.querySelectorAll("[data-delete-history]").forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    if (!confirm("履歴を削除しますか？")) return;
+                    item[key].splice(Number(btn.dataset.deleteHistory), 1);
+                    await persistAndRender();
+                });
+            });
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add("show");
+            appErrorMessage.textContent = message;
+            appErrorMessage.classList.add("show");
+        }
+
+        function clearError() {
+            errorMessage.textContent = "";
+            errorMessage.classList.remove("show");
+            appErrorMessage.textContent = "";
+            appErrorMessage.classList.remove("show");
+        }
+
+        function toJapaneseError(error) {
+            const code = error?.code || "unknown";
+            const messages = {
+                "auth/unauthorized-domain": "このドメインがFirebase Authenticationの承認済みドメインに入っていません。Firebase ConsoleでAuthorized domainsを確認してください。",
+                "auth/popup-blocked": "ブラウザがログイン用ポップアップをブロックしています。ポップアップを許可して再試行してください。",
+                "auth/popup-closed-by-user": "ログイン画面が閉じられました。もう一度ログインしてください。",
+                "auth/operation-not-allowed": "Firebase ConsoleのAuthenticationでGoogleログインが有効になっていません。",
+                "auth/invalid-api-key": "Firebase設定のapiKeyが正しくありません。"
+            };
+
+            return messages[code] || `ログインできませんでした。エラーコード: ${code}`;
+        }
     </script>
 </body>
 </html>
