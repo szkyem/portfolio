@@ -157,8 +157,8 @@
         };
 
         firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
         const auth = firebase.auth();
-        const database = firebase.database();
         const provider = new firebase.auth.GoogleAuthProvider();
 
         // ========== アプリ状態 ==========
@@ -199,33 +199,38 @@ auth.onAuthStateChanged(async user => {
 
     console.log("UID:", user.uid);
     console.log("EMAIL:", user.email);
+    alert("UID: " + user.uid);
 
     updateAuthInfo('認証確認中…');
 
     try {
-        const memberSnap = await database.ref('members/' + user.uid).once('value');
-        const adminSnap = await database.ref('admins/' + user.uid).once('value');
+        const memberSnap = await get(ref(database, 'members/' + user.uid));
+                const adminSnap = await get(ref(database, 'admins/' + user.uid));
+            ref(database, 'members/' + user.uid),
+            ref(database, 'admins/' + user.uid)
+        ]);
 
-        isMember = memberSnap.val() === true;
-        isAdmin = adminSnap.val() === true;
+                isMember = memberSnap.val() === true;
+                isAdmin = adminSnap.val() === true;
 
-        updateAuthUI();
+                updateAuthUI();
 
-        if (!isMember) {
-            showLoginScreen();
-            showMessage('このアカウントには閲覧権限がありません。管理者に members 追加を依頼してください。', 'error');
-            return;
-        }
+                if (!isMember) {
+                    showLoginScreen();
+                    showMessage('このアカウントには閲覧権限がありません。管理者に members 追加を依頼してください。', 'error');
+                    return;
+                }
 
-        showAppScreen();
-        await loadData();
-        applyRoleUI();
+                showAppScreen();
+                await loadData();
+                applyRoleUI();
 
-    } catch (error) {
-        console.error('権限確認エラー:', error);
-        showLoginScreen();
-        showMessage('権限確認に失敗しました: ' + error.message, 'error');
-    }
+            } catch (error) {
+                console.error('権限確認エラー:', error);
+                showLoginScreen();
+                showMessage('権限確認に失敗しました: ' + error.message, 'error');
+            }
+        });
 
         function updateAuthUI() {
             const authInfo = document.getElementById('authInfo');
@@ -308,17 +313,14 @@ auth.onAuthStateChanged(async user => {
 
             localStorage.setItem('portfolioDataBackup', json);
 
-            if (!currentUser) {
-                console.warn('ログインしていないため保存をスキップしました');
-                return;
-            }
-
-            try {
-                await database.ref(`users/${currentUser.uid}/portfolioData`).set(JSON.parse(json));
-                console.log('Firebase 保存成功');
-            } catch (error) {
-                console.error('Firebase 保存エラー:', error);
-                showMessage('Firebase 保存エラー: ' + error.message, 'error');
+            // Firebase に保存（ユーザーのデータ領域）
+            if (currentUser) {
+                try {
+                    await set(ref(database, `users/${currentUser.uid}/portfolioData`), data);
+                    console.log('Firebase 保存成功');
+                } catch (error) {
+                    console.error('Firebase 保存エラー:', error);
+                }
             }
         }
 
@@ -326,7 +328,7 @@ async function loadData() {
     if (!currentUser || !isMember) return;
 
     try {
-        const snapshot = await database.ref(`users/${currentUser.uid}/portfolioData`).once('value');
+        const snapshot = await get(ref(database, `users/${currentUser.uid}/portfolioData`));
         data.categories = [];
 
         if (snapshot.exists()) {
@@ -1035,6 +1037,21 @@ function renderCategories() {
         }
 
         window.addEventListener('popstate', goHome);
+
+        // グローバル関数を window に公開
+        window.loginWithGoogle = function() {
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            auth.signInWithPopup(provider)
+                .catch(error => {
+                    console.error('ログインエラー:', error);
+                    loginBtn.disabled = false;
+                });
+        }
+
+        window.logout = function() {
+            auth.signOut();
+        }
     </script>
 </body>
 </html>
