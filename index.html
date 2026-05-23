@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>仕事用メモ - Firebase</title>
-    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js"></script>
+    <title>Portfolio - Firebase Login</title>
     <style>
         * {
             margin: 0;
@@ -14,933 +11,224 @@
             box-sizing: border-box;
         }
 
-        :root {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1a2744;
-            --bg-tertiary: #2a3f5f;
-            --text-primary: #f0f4f8;
-            --text-secondary: #cbd5e1;
-            --accent: #3b82f6;
-            --accent-light: #60a5fa;
-            --accent-dark: #1e40af;
-            --border: #334155;
-            --danger: #ef4444;
-            --success: #10b981;
-            --warning: #f59e0b;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            overflow: hidden;
-        }
-
-        /* ===== Login View ===== */
-        .login-view {
+            font-family: "Segoe UI", "Yu Gothic", "Meiryo", sans-serif;
+            background: linear-gradient(135deg, #4f7cff 0%, #263a66 100%);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0f172a 0%, #1a2744 100%);
+            padding: 24px;
+            color: #1f2937;
         }
 
-        .login-panel {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 2.5rem;
+        .container {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 18px 50px rgba(31, 41, 55, 0.18);
+            padding: 36px;
             width: 100%;
-            max-width: 420px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            max-width: 560px;
         }
 
-        .login-panel h1 {
+        .login-section {
+            text-align: center;
+        }
+
+        h1 {
             font-size: 28px;
             margin-bottom: 12px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
-        .login-panel p {
-            color: var(--text-secondary);
-            margin-bottom: 1.5rem;
-            font-size: 14px;
+        h2 {
+            color: #1f2937;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #4f7cff;
+            padding-bottom: 10px;
         }
 
-        .google-btn {
-            width: 100%;
-            padding: 12px 24px;
-            background: var(--accent);
-            color: white;
+        p {
+            line-height: 1.7;
+        }
+
+        button {
+            background: #2563eb;
+            color: #ffffff;
             border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 1rem;
-        }
-
-        .google-btn:hover {
-            background: var(--accent-light);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
-        }
-
-        .error-msg {
-            background: rgba(239, 68, 68, 0.1);
-            color: #fca5a5;
-            padding: 12px;
+            padding: 12px 24px;
             border-radius: 6px;
-            font-size: 13px;
-            margin-bottom: 1rem;
-            display: none;
-        }
-
-        .error-msg.show {
-            display: block;
-        }
-
-        /* ===== Main App ===== */
-        .app-container {
-            display: none;
-            height: 100vh;
-            flex-direction: column;
-        }
-
-        .app-container.active {
-            display: flex;
-        }
-
-        .header {
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            padding: 1rem 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .header h1 {
-            font-size: 24px;
+            cursor: pointer;
+            font-size: 16px;
             font-weight: 700;
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            transition: background 0.2s ease;
         }
 
-        .user-section {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        button:hover {
+            background: #1d4ed8;
         }
 
-        .user-info {
-            text-align: right;
-            font-size: 13px;
+        button:disabled {
+            cursor: wait;
+            opacity: 0.65;
         }
 
-        .user-email {
-            color: var(--text-secondary);
+        .login-button {
+            width: 100%;
+            margin-top: 24px;
         }
 
         .logout-btn {
-            padding: 8px 16px;
-            background: var(--danger);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s;
+            background: #eef2f7;
+            color: #1f2937;
+            white-space: nowrap;
         }
 
         .logout-btn:hover {
-            background: #dc2626;
+            background: #dfe7f1;
         }
 
-        .content {
-            flex: 1;
-            display: flex;
-            gap: 0;
-            overflow: hidden;
-        }
-
-        /* ===== Sidebar ===== */
-        .sidebar {
-            width: 320px;
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-
-        .categories-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .categories-header h2 {
-            font-size: 14px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-        }
-
-        .add-btn-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--accent);
-            border: none;
-            border-radius: 6px;
-            color: white;
-            cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-
-        .add-btn-icon:hover {
-            background: var(--accent-light);
-        }
-
-        .categories-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0.5rem;
-        }
-
-        .category-item {
-            padding: 0.75rem 1rem;
-            margin-bottom: 0.5rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .category-item:hover {
-            background: var(--accent);
-            border-color: var(--accent);
-        }
-
-        .category-item.active {
-            background: var(--accent);
-            border-color: var(--accent);
-        }
-
-        .category-name {
-            flex: 1;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .category-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .delete-mini-btn {
-            width: 24px;
-            height: 24px;
-            background: rgba(239, 68, 68, 0.2);
-            border: none;
-            border-radius: 4px;
-            color: var(--danger);
-            cursor: pointer;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .delete-mini-btn:hover {
-            background: rgba(239, 68, 68, 0.4);
-        }
-
-        /* ===== Main Content ===== */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-primary);
-            overflow: hidden;
-        }
-
-        .breadcrumb {
-            padding: 1rem 2rem;
-            border-bottom: 1px solid var(--border);
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .breadcrumb-item {
-            color: var(--accent);
-            cursor: pointer;
-            text-decoration: none;
-            margin: 0 0.5rem;
-        }
-
-        .breadcrumb-item:hover {
-            color: var(--accent-light);
-        }
-
-        .view-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 2rem;
-        }
-
-        .home-view h2 {
-            font-size: 20px;
-            margin-bottom: 1.5rem;
-            color: var(--text-primary);
-        }
-
-        /* ===== Projects Grid ===== */
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .project-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .project-card:hover {
-            border-color: var(--accent);
-            background: var(--bg-tertiary);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
-        }
-
-        .project-name {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
-
-        .project-count {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .project-actions {
-            margin-top: 1rem;
-            display: flex;
-            gap: 0.5rem;
-            justify-content: flex-end;
-        }
-
-        .mini-btn {
-            width: 28px;
-            height: 28px;
-            background: rgba(59, 130, 246, 0.2);
-            border: none;
-            border-radius: 4px;
-            color: var(--accent);
-            cursor: pointer;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .mini-btn:hover {
-            background: var(--accent);
-            color: white;
-        }
-
-        .mini-btn.danger {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--danger);
-        }
-
-        .mini-btn.danger:hover {
-            background: var(--danger);
-            color: white;
-        }
-
-        /* ===== Items Grid ===== */
-        .items-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .item-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .item-card:hover {
-            border-color: var(--accent);
-            background: var(--bg-tertiary);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
-        }
-
-        .item-name {
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            color: var(--text-primary);
-            word-break: break-word;
-        }
-
-        .item-preview {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-            line-height: 1.4;
-            min-height: 2.4em;
-        }
-
-        .item-actions {
-            margin-top: auto;
-            display: flex;
-            gap: 0.5rem;
-            justify-content: flex-end;
-        }
-
-        /* ===== Editable ===== */
-        .editable {
-            cursor: pointer;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-
-        .editable:hover {
-            background: rgba(59, 130, 246, 0.1);
-        }
-
-        /* ===== Detail View ===== */
-        .detail-view {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .detail-header {
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 1.5rem;
-        }
-
-        .detail-title {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .detail-meta {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        /* ===== Tabs ===== */
-        .tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 0;
-        }
-
-        .tab-btn {
-            padding: 0.75rem 1.25rem;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
-        }
-
-        .tab-btn:hover {
-            color: var(--accent);
-        }
-
-        .tab-btn.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-        }
-
-        .tab-content {
+        .toc-section,
+        .user-info,
+        .content-area,
+        .error-message {
             display: none;
         }
 
-        .tab-content.active {
+        .toc-section.active,
+        .user-info.active,
+        .content-area.active,
+        .error-message.show {
             display: block;
         }
 
-        /* ===== Roadmap ===== */
-        .roadmap-container {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .phase-section {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
+        .user-info {
+            background: #f3f6fb;
+            padding: 16px;
             border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 24px;
         }
 
-        .phase-header {
+        .user-row {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
             justify-content: space-between;
+            gap: 16px;
         }
 
-        .phase-title {
-            font-size: 16px;
-            font-weight: 600;
-            flex: 1;
-        }
-
-        .phase-badge {
-            background: var(--accent);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .phase-delete {
-            width: 28px;
-            height: 28px;
-            background: rgba(239, 68, 68, 0.2);
-            border: none;
-            border-radius: 4px;
-            color: var(--danger);
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .tasks-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .task-item {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .task-checkbox {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            accent-color: var(--success);
-        }
-
-        .task-text {
-            flex: 1;
-            font-size: 14px;
-            color: var(--text-primary);
-            transition: all 0.2s;
-        }
-
-        .task-text.completed {
-            text-decoration: line-through;
-            color: var(--text-secondary);
-        }
-
-        .task-delete {
-            width: 24px;
-            height: 24px;
-            background: rgba(239, 68, 68, 0.2);
-            border: none;
-            border-radius: 4px;
-            color: var(--danger);
-            cursor: pointer;
-            font-size: 11px;
-        }
-
-        .add-task-btn {
-            padding: 0.5rem 1rem;
-            background: rgba(59, 130, 246, 0.2);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .add-task-btn:hover {
-            background: var(--accent);
-            color: white;
-        }
-
-        .add-phase-btn {
-            padding: 0.75rem 1.5rem;
-            background: var(--success);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 1rem;
-        }
-
-        .add-phase-btn:hover {
-            background: #059669;
-        }
-
-        /* ===== Comments Section ===== */
-        .comments-section {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .comments-list {
-            flex: 1;
-            margin-bottom: 1.5rem;
-        }
-
-        .comment-item {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            position: relative;
-        }
-
-        .comment-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.75rem;
-        }
-
-        .comment-time {
-            font-size: 11px;
-            color: var(--text-secondary);
-        }
-
-        .comment-content {
-            font-size: 14px;
-            color: var(--text-primary);
-            line-height: 1.5;
-            word-break: break-word;
-            white-space: pre-wrap;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-
-        .comment-content:hover {
-            background: rgba(59, 130, 246, 0.1);
-        }
-
-        .comment-delete {
-            width: 20px;
-            height: 20px;
-            background: transparent;
-            border: none;
-            color: var(--danger);
-            cursor: pointer;
-            font-size: 12px;
-            padding: 0;
-        }
-
-        .comment-form {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .comment-input {
-            flex: 1;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 0.75rem;
-            color: var(--text-primary);
-            font-size: 14px;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 60px;
-        }
-
-        .comment-input:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: var(--bg-tertiary);
-        }
-
-        .comment-submit {
-            padding: 0.75rem 1.5rem;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 6px;
+        .user-label {
+            color: #667085;
             font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            height: fit-content;
+            margin-bottom: 4px;
         }
 
-        .comment-submit:hover {
-            background: var(--accent-light);
-        }
-
-        /* ===== Inline Editing ===== */
-        .edit-input {
-            background: var(--bg-secondary);
-            border: 2px solid var(--accent);
-            border-radius: 6px;
-            padding: 0.5rem;
-            color: var(--text-primary);
-            font-size: 14px;
-            font-family: inherit;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .edit-input:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-
-        /* ===== Scrollbar ===== */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-primary);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
-        }
-
-        /* ===== Modal ===== */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 2rem;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-title {
-            font-size: 18px;
+        .user-email {
             font-weight: 700;
-            margin-bottom: 1rem;
+            color: #1f2937;
+            word-break: break-word;
         }
 
-        .modal-input {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 14px;
-            margin-bottom: 1.5rem;
+        .toc-list {
+            list-style: none;
         }
 
-        .modal-buttons {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .modal-btn {
-            flex: 1;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
+        .toc-list li {
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8fafc;
+            border-left: 4px solid #4f7cff;
+            border-radius: 4px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: background 0.2s ease, transform 0.2s ease;
         }
 
-        .modal-btn.primary {
-            background: var(--accent);
-            color: white;
+        .toc-list li:hover {
+            background: #eef4ff;
+            transform: translateX(4px);
         }
 
-        .modal-btn.primary:hover {
-            background: var(--accent-light);
+        .content-area {
+            margin-top: 28px;
+            padding: 18px;
+            background: #f8fafc;
+            border-radius: 8px;
         }
 
-        .modal-btn.secondary {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
+        .content-area h3 {
+            margin-bottom: 10px;
         }
 
-        .modal-btn.secondary:hover {
-            background: var(--border);
+        .error-message {
+            background: #fef3f2;
+            color: #b42318;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 18px;
+            line-height: 1.6;
         }
 
-        /* ===== Responsive ===== */
-        @media (max-width: 768px) {
-            .content {
+        @media (max-width: 520px) {
+            .container {
+                padding: 24px;
+            }
+
+            .user-row {
+                align-items: stretch;
                 flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                max-height: 200px;
-            }
-
-            .projects-grid,
-            .items-grid {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            }
-
-            .modal-content {
-                width: 95%;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Login View -->
-    <div class="login-view" id="loginView">
-        <div class="login-panel">
-            <h1>📋 仕事用メモ</h1>
-            <p>Googleアカウントでログインして、プロジェクト管理を始めましょう</p>
-            <div class="error-msg" id="loginError"></div>
-            <button class="google-btn" id="googleLoginBtn">Google でログイン</button>
-        </div>
-    </div>
+    <main class="container">
+        <div class="error-message" id="errorMessage"></div>
 
-    <!-- Main App -->
-    <div class="app-container" id="appContainer">
-        <!-- Header -->
-        <div class="header">
-            <h1>📋 仕事用メモ</h1>
-            <div class="user-section">
-                <div class="user-info">
-                    <div class="user-email" id="userEmail"></div>
+        <section class="login-section" id="loginSection">
+            <h1>📚 My Contents</h1>
+            <p>Googleアカウントでログインすると目次が表示されます。</p>
+            <button class="login-button" id="loginBtn" type="button">🔐 Google でログイン</button>
+        </section>
+
+        <section class="toc-section" id="tocSection" aria-live="polite">
+            <div class="user-info" id="userInfo">
+                <div class="user-row">
+                    <div>
+                        <p class="user-label">ログイン中</p>
+                        <p class="user-email" id="userEmail"></p>
+                    </div>
+                    <button class="logout-btn" id="logoutBtn" type="button">ログアウト</button>
                 </div>
-                <button class="logout-btn" id="logoutBtn">ログアウト</button>
-            </div>
-        </div>
-
-        <!-- Content -->
-        <div class="content">
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <div class="categories-header">
-                    <h2>カテゴリー</h2>
-                    <button class="add-btn-icon" id="addCategoryBtn" title="カテゴリー追加">+</button>
-                </div>
-                <div class="categories-list" id="categoriesList"></div>
             </div>
 
-            <!-- Main Content -->
-            <div class="main-content">
-                <div class="breadcrumb" id="breadcrumb"></div>
-                <div class="view-container" id="viewContainer"></div>
-            </div>
-        </div>
-    </div>
+            <h2>📖 目次</h2>
+            <ul class="toc-list">
+                <li data-chapter="chapter1">第1章: はじめに</li>
+                <li data-chapter="chapter2">第2章: 基本概念</li>
+                <li data-chapter="chapter3">第3章: 実装方法</li>
+                <li data-chapter="chapter4">第4章: まとめ</li>
+            </ul>
 
-    <!-- Add Item Modal -->
-    <div class="modal" id="addItemModal">
-        <div class="modal-content">
-            <div class="modal-title" id="modalTitle">新規作成</div>
-            <input type="text" class="modal-input" id="itemNameInput" placeholder="名前を入力">
-            <div class="modal-buttons">
-                <button class="modal-btn primary" id="confirmAddBtn">作成</button>
-                <button class="modal-btn secondary" id="cancelAddBtn">キャンセル</button>
+            <div class="content-area" id="contentArea">
+                <div id="contentDisplay"></div>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
-    <script>
-        // Firebase Configuration
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import {
+            getAuth,
+            GoogleAuthProvider,
+            onAuthStateChanged,
+            signInWithPopup,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import {
+            getDatabase,
+            ref,
+            serverTimestamp,
+            set
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
         const firebaseConfig = {
  apiKey: "AIzaSyB2CH410X3yk4YTJWFC2JyEWScXZn77Z3I",
   authDomain: "my-portfolio-d3560.firebaseapp.com",
@@ -951,691 +239,130 @@
   appId: "1:293517847141:web:bec173cf345b47cf91f48c
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        const contents = {
+            chapter1: {
+                title: "第1章: はじめに",
+                text: "これはFirebaseログイン確認用のシンプルなサンプルです。"
+            },
+            chapter2: {
+                title: "第2章: 基本概念",
+                text: "コードはGitHubに保存し、ログイン情報などのデータはFirebaseに保存します。"
+            },
+            chapter3: {
+                title: "第3章: 実装方法",
+                text: "Firebase AuthenticationでGoogleログインし、Realtime Databaseへログイン記録を書き込みます。"
+            },
+            chapter4: {
+                title: "第4章: まとめ",
+                text: "この形を土台に、目次や本文データをFirebaseから読み込む構造へ広げられます。"
+            }
+        };
 
-        // State
-        let currentUser = null;
-        let currentCategory = null;
-        let currentProject = null;
-        let currentItem = null;
-        let allData = { categories: [] };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+        const provider = new GoogleAuthProvider();
 
-        // ===== Auth =====
-        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+        const errorMessage = document.getElementById("errorMessage");
+        const loginSection = document.getElementById("loginSection");
+        const tocSection = document.getElementById("tocSection");
+        const userInfo = document.getElementById("userInfo");
+        const userEmail = document.getElementById("userEmail");
+        const loginBtn = document.getElementById("loginBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const contentArea = document.getElementById("contentArea");
+        const contentDisplay = document.getElementById("contentDisplay");
+
+        loginBtn.addEventListener("click", async () => {
+            clearError();
+            loginBtn.disabled = true;
+
             try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                await auth.signInWithPopup(provider);
+                await signInWithPopup(auth, provider);
             } catch (error) {
-                showLoginError(error.message);
+                showError(toJapaneseError(error));
+                console.error(error);
+            } finally {
+                loginBtn.disabled = false;
             }
         });
 
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            try {
-                await auth.signOut();
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
+        logoutBtn.addEventListener("click", async () => {
+            clearError();
+            await signOut(auth);
         });
 
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('loginView').style.display = 'none';
-                document.getElementById('appContainer').classList.add('active');
-                document.getElementById('userEmail').textContent = user.email;
-                await loadData();
-                renderHome();
-            } else {
-                currentUser = null;
-                document.getElementById('loginView').style.display = 'flex';
-                document.getElementById('appContainer').classList.remove('active');
-            }
+        document.querySelectorAll("[data-chapter]").forEach((item) => {
+            item.addEventListener("click", () => showContent(item.dataset.chapter));
         });
 
-        // ===== Data Management =====
-        async function loadData() {
-            try {
-                const doc = await db.collection('users').doc(currentUser.uid).get();
-                if (doc.exists) {
-                    allData = doc.data();
-                } else {
-                    allData = { categories: [] };
-                }
-                renderCategories();
-            } catch (error) {
-                console.error('Load error:', error);
-            }
-        }
-
-        async function saveData() {
-            try {
-                await db.collection('users').doc(currentUser.uid).set(allData);
-            } catch (error) {
-                console.error('Save error:', error);
-            }
-        }
-
-        function generateId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
-        }
-
-        // ===== Rendering =====
-        function renderCategories() {
-            const html = allData.categories.map(cat => `
-                <div class="category-item ${currentCategory === cat.id ? 'active' : ''}" onclick="selectCategory('${cat.id}')">
-                    <span class="category-name">${escapeHtml(cat.name)}</span>
-                    <div class="category-actions">
-                        <button class="delete-mini-btn" onclick="event.stopPropagation(); deleteCategory('${cat.id}')" title="削除">×</button>
-                    </div>
-                </div>
-            `).join('');
-            document.getElementById('categoriesList').innerHTML = html;
-        }
-
-        function renderHome() {
-            currentProject = null;
-            currentItem = null;
-            updateBreadcrumb();
-
-            let html = '<h2>カテゴリー</h2><div class="projects-grid">';
-            html += allData.categories.map(cat => `
-                <div class="project-card" onclick="selectCategory('${cat.id}')">
-                    <div>
-                        <div class="project-name">${escapeHtml(cat.name)}</div>
-                        <div class="project-count">${cat.projects?.length || 0} プロジェクト</div>
-                    </div>
-                </div>
-            `).join('');
-            html += '</div>';
-
-            document.getElementById('viewContainer').innerHTML = html;
-        }
-
-        function selectCategory(catId) {
-            currentCategory = catId;
-            currentProject = null;
-            currentItem = null;
-            renderCategories();
-            renderProjects();
-        }
-
-        function renderProjects() {
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            if (!cat) return;
-
-            updateBreadcrumb();
-
-            let html = `<h2>${escapeHtml(cat.name)}</h2>`;
-            html += '<div class="projects-grid">';
-            
-            cat.projects?.forEach(proj => {
-                html += `
-                    <div class="project-card" onclick="selectProject('${cat.id}', '${proj.id}')">
-                        <div>
-                            <div class="project-name">${escapeHtml(proj.name)}</div>
-                            <div class="project-count">${proj.items?.length || 0} アイテム</div>
-                        </div>
-                        <div class="project-actions">
-                            <button class="mini-btn" onclick="event.stopPropagation(); editProjectName('${cat.id}', '${proj.id}')">✎</button>
-                            <button class="mini-btn danger" onclick="event.stopPropagation(); deleteProject('${cat.id}', '${proj.id}')">×</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            html += '</div>';
-            html += `<button class="add-phase-btn" onclick="addProject('${cat.id}')">+ プロジェクト追加</button>`;
-
-            document.getElementById('viewContainer').innerHTML = html;
-        }
-
-        function selectProject(catId, projId) {
-            currentCategory = catId;
-            currentProject = projId;
-            currentItem = null;
-            renderItems();
-        }
-
-        function renderItems() {
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            if (!proj) return;
-
-            updateBreadcrumb();
-
-            let html = `<h2>${escapeHtml(proj.name)}</h2>`;
-            html += '<div class="items-grid">';
-            
-            proj.items?.forEach(item => {
-                html += `
-                    <div class="item-card" onclick="selectItem('${proj.id}', '${item.id}')">
-                        <div class="item-name">${escapeHtml(item.name)}</div>
-                        <div class="item-preview">${escapeHtml(item.status || 'アイテム')}</div>
-                        <div class="item-actions">
-                            <button class="mini-btn" onclick="event.stopPropagation(); editItemName('${proj.id}', '${item.id}')">✎</button>
-                            <button class="mini-btn danger" onclick="event.stopPropagation(); deleteItem('${proj.id}', '${item.id}')">×</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            html += '</div>';
-            html += `<button class="add-phase-btn" onclick="addItem('${proj.id}')">+ アイテム追加</button>`;
-
-            document.getElementById('viewContainer').innerHTML = html;
-        }
-
-        function selectItem(projId, itemId) {
-            currentProject = projId;
-            currentItem = itemId;
-            renderItemDetail();
-        }
-
-        function renderItemDetail() {
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            const item = proj?.items?.find(i => i.id === currentItem);
-            if (!item) return;
-
-            updateBreadcrumb();
-
-            let html = `
-                <div class="detail-view">
-                    <div class="detail-header">
-                        <h1 class="detail-title editable" ondblclick="editItemName('${proj.id}', '${item.id}')">${escapeHtml(item.name)}</h1>
-                    </div>
-
-                    <div class="tabs">
-                        <button class="tab-btn active" onclick="switchTab('roadmap')">🗺️ ロードマップ</button>
-                        <button class="tab-btn" onclick="switchTab('issues')">⚠️ 課題</button>
-                        <button class="tab-btn" onclick="switchTab('status')">📊 現状</button>
-                        <button class="tab-btn" onclick="switchTab('stumbles')">🚧 躓き履歴</button>
-                    </div>
-
-                    <!-- Roadmap Tab -->
-                    <div class="tab-content active" id="roadmap-tab">
-                        <div class="roadmap-container" id="roadmapContainer"></div>
-                        <button class="add-phase-btn" onclick="addPhase('${item.id}')">+ フェーズ追加</button>
-                    </div>
-
-                    <!-- Issues Tab -->
-                    <div class="tab-content" id="issues-tab">
-                        <div class="comments-section">
-                            <div class="comments-list" id="issuesList"></div>
-                            <div class="comment-form">
-                                <textarea class="comment-input" id="issueInput" placeholder="課題を入力..."></textarea>
-                                <button class="comment-submit" onclick="addIssueComment('${item.id}')">送信</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Status Tab -->
-                    <div class="tab-content" id="status-tab">
-                        <div class="comments-section">
-                            <div class="comments-list" id="statusList"></div>
-                            <div class="comment-form">
-                                <textarea class="comment-input" id="statusInput" placeholder="現状を入力..."></textarea>
-                                <button class="comment-submit" onclick="addStatusComment('${item.id}')">送信</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Stumbles Tab -->
-                    <div class="tab-content" id="stumbles-tab">
-                        <div class="comments-section">
-                            <div class="comments-list" id="stumblesList"></div>
-                            <div class="comment-form">
-                                <textarea class="comment-input" id="stumbleInput" placeholder="躓きを入力..."></textarea>
-                                <button class="comment-submit" onclick="addStumbleComment('${item.id}')">送信</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('viewContainer').innerHTML = html;
-            renderRoadmap(item);
-            renderComments('issues', item);
-            renderComments('status', item);
-            renderComments('stumbles', item);
-        }
-
-        function renderRoadmap(item) {
-            const phases = item.phases || [];
-            let html = '';
-
-            phases.forEach((phase, pidx) => {
-                const completedTasks = phase.tasks?.filter(t => t.completed).length || 0;
-                const totalTasks = phase.tasks?.length || 0;
-                const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-                html += `
-                    <div class="phase-section">
-                        <div class="phase-header">
-                            <div class="phase-title editable" ondblclick="editPhase('${item.id}', ${pidx})">${escapeHtml(phase.name)}</div>
-                            <div class="phase-badge">${percentage}%</div>
-                            <button class="phase-delete" onclick="deletePhase('${item.id}', ${pidx})">×</button>
-                        </div>
-                        <div class="tasks-list" id="tasks-${pidx}">
-                `;
-
-                phase.tasks?.forEach((task, tidx) => {
-                    html += `
-                        <div class="task-item">
-                            <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${item.id}', ${pidx}, ${tidx})">
-                            <span class="task-text ${task.completed ? 'completed' : ''}" ondblclick="editTask('${item.id}', ${pidx}, ${tidx})">${escapeHtml(task.name)}</span>
-                            <button class="task-delete" onclick="deleteTask('${item.id}', ${pidx}, ${tidx})">×</button>
-                        </div>
-                    `;
-                });
-
-                html += `
-                        </div>
-                        <button class="add-task-btn" onclick="addTask('${item.id}', ${pidx})">+ タスク追加</button>
-                    </div>
-                `;
-            });
-
-            document.getElementById('roadmapContainer').innerHTML = html;
-        }
-
-        function renderComments(type, item) {
-            const comments = item[type + 'Comments'] || [];
-            let html = '';
-
-            comments.forEach((comment, idx) => {
-                const time = new Date(comment.timestamp).toLocaleString('ja-JP');
-                html += `
-                    <div class="comment-item">
-                        <div class="comment-header">
-                            <span class="comment-time">${time}</span>
-                            <button class="comment-delete" onclick="deleteComment('${item.id}', '${type}', ${idx})">×</button>
-                        </div>
-                        <div class="comment-content" ondblclick="editComment('${item.id}', '${type}', ${idx})">${escapeHtml(comment.content)}</div>
-                    </div>
-                `;
-            });
-
-            document.getElementById(type + 'List').innerHTML = html;
-        }
-
-        // ===== Event Handlers =====
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById(tabName + '-tab').classList.add('active');
-        }
-
-        function updateBreadcrumb() {
-            let html = '<a class="breadcrumb-item" onclick="renderHome()">ホーム</a>';
-
-            if (currentCategory) {
-                const cat = allData.categories.find(c => c.id === currentCategory);
-                html += ` > <a class="breadcrumb-item" onclick="selectCategory('${currentCategory}')">${escapeHtml(cat?.name || '?')}</a>`;
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                showLoginUI();
+                return;
             }
 
-            if (currentProject) {
-                const cat = allData.categories.find(c => c.id === currentCategory);
-                const proj = cat?.projects?.find(p => p.id === currentProject);
-                html += ` > <a class="breadcrumb-item" onclick="selectProject('${currentCategory}', '${currentProject}')">${escapeHtml(proj?.name || '?')}</a>`;
-            }
-
-            if (currentItem) {
-                const cat = allData.categories.find(c => c.id === currentCategory);
-                const proj = cat?.projects?.find(p => p.id === currentProject);
-                const item = proj?.items?.find(i => i.id === currentItem);
-                html += ` > <span class="breadcrumb-item">${escapeHtml(item?.name || '?')}</span>`;
-            }
-
-            document.getElementById('breadcrumb').innerHTML = html;
-        }
-
-        // ===== Add/Edit/Delete Functions =====
-        document.getElementById('addCategoryBtn').addEventListener('click', () => {
-            showModal('新規カテゴリー', (name) => {
-                allData.categories.push({
-                    id: generateId(),
-                    name: name,
-                    projects: []
-                });
-                saveData();
-                renderCategories();
-            });
+            showLoggedInUI(user);
+            await saveLoginRecord(user);
         });
 
-        function addProject(catId) {
-            showModal('新規プロジェクト', (name) => {
-                const cat = allData.categories.find(c => c.id === catId);
-                if (!cat.projects) cat.projects = [];
-                cat.projects.push({
-                    id: generateId(),
-                    name: name,
-                    items: []
-                });
-                saveData();
-                renderProjects();
-            });
+        function showLoginUI() {
+            loginSection.style.display = "block";
+            tocSection.classList.remove("active");
+            userInfo.classList.remove("active");
+            contentArea.classList.remove("active");
         }
 
-        function editProjectName(catId, projId) {
-            const cat = allData.categories.find(c => c.id === catId);
-            const proj = cat?.projects?.find(p => p.id === projId);
-            if (!proj) return;
-
-            showModal('プロジェクト名編集', (name) => {
-                proj.name = name;
-                saveData();
-                renderProjects();
-            }, proj.name);
+        function showLoggedInUI(user) {
+            loginSection.style.display = "none";
+            tocSection.classList.add("active");
+            userInfo.classList.add("active");
+            userEmail.textContent = user.email || user.displayName || user.uid;
         }
 
-        function deleteProject(catId, projId) {
-            if (!confirm('削除しますか？')) return;
-            const cat = allData.categories.find(c => c.id === catId);
-            if (cat) {
-                cat.projects = cat.projects?.filter(p => p.id !== projId) || [];
-                saveData();
-                renderProjects();
-            }
-        }
-
-        function addItem(projId) {
-            showModal('新規アイテム', (name) => {
-                const cat = allData.categories.find(c => c.id === currentCategory);
-                const proj = cat?.projects?.find(p => p.id === projId);
-                if (!proj.items) proj.items = [];
-                proj.items.push({
-                    id: generateId(),
-                    name: name,
-                    status: 'アイテム',
-                    phases: [],
-                    issuesComments: [],
-                    statusComments: [],
-                    stumblesComments: []
-                });
-                saveData();
-                renderItems();
-            });
-        }
-
-        function editItemName(projId, itemId) {
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === projId);
-            const item = proj?.items?.find(i => i.id === itemId);
-            if (!item) return;
-
-            showModal('アイテム名編集', (name) => {
-                item.name = name;
-                saveData();
-                renderItemDetail();
-            }, item.name);
-        }
-
-        function deleteItem(projId, itemId) {
-            if (!confirm('削除しますか？')) return;
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === projId);
-            if (proj) {
-                proj.items = proj.items?.filter(i => i.id !== itemId) || [];
-                saveData();
-                renderItems();
-            }
-        }
-
-        function deleteCategory(catId) {
-            if (!confirm('削除しますか？')) return;
-            allData.categories = allData.categories.filter(c => c.id !== catId);
-            if (currentCategory === catId) {
-                currentCategory = null;
-                currentProject = null;
-                currentItem = null;
-            }
-            saveData();
-            renderCategories();
-            renderHome();
-        }
-
-        function addPhase(itemId) {
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            const item = proj?.items?.find(i => i.id === itemId);
-            if (!item) return;
-
-            if (!item.phases) item.phases = [];
-            const phaseNum = item.phases.length + 1;
-            item.phases.push({
-                name: `フェーズ ${phaseNum}`,
-                tasks: []
-            });
-            saveData();
-            renderItemDetail();
-        }
-
-        function editPhase(itemId, phaseIdx) {
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            const item = proj?.items?.find(i => i.id === itemId);
-            if (!item?.phases?.[phaseIdx]) return;
-
-            showModal('フェーズ名編集', (name) => {
-                item.phases[phaseIdx].name = name;
-                saveData();
-                renderItemDetail();
-            }, item.phases[phaseIdx].name);
-        }
-
-        function deletePhase(itemId, phaseIdx) {
-            if (!confirm('削除しますか？')) return;
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            const item = proj?.items?.find(i => i.id === itemId);
-            if (item?.phases) {
-                item.phases.splice(phaseIdx, 1);
-                saveData();
-                renderItemDetail();
-            }
-        }
-
-        function addTask(itemId, phaseIdx) {
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            const item = proj?.items?.find(i => i.id === itemId);
-            if (!item?.phases?.[phaseIdx]) return;
-
-            showModal('タスク名', (name) => {
-                if (!item.phases[phaseIdx].tasks) item.phases[phaseIdx].tasks = [];
-                item.phases[phaseIdx].tasks.push({
-                    name: name,
-                    completed: false
-                });
-                saveData();
-                renderItemDetail();
-            });
-        }
-
-        function editTask(itemId, phaseIdx, taskIdx) {
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            const item = proj?.items?.find(i => i.id === itemId);
-            const task = item?.phases?.[phaseIdx]?.tasks?.[taskIdx];
-            if (!task) return;
-
-            showModal('タスク編集', (name) => {
-                task.name = name;
-                saveData();
-                renderItemDetail();
-            }, task.name);
-        }
-
-        function toggleTask(itemId, phaseIdx, taskIdx) {
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            const item = proj?.items?.find(i => i.id === itemId);
-            const task = item?.phases?.[phaseIdx]?.tasks?.[taskIdx];
-            if (task) {
-                task.completed = !task.completed;
-                saveData();
-                renderItemDetail();
-            }
-        }
-
-        function deleteTask(itemId, phaseIdx, taskIdx) {
-            if (!confirm('削除しますか？')) return;
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            const item = proj?.items?.find(i => i.id === itemId);
-            if (item?.phases?.[phaseIdx]?.tasks) {
-                item.phases[phaseIdx].tasks.splice(taskIdx, 1);
-                saveData();
-                renderItemDetail();
-            }
-        }
-
-        function addIssueComment(itemId) {
-            const content = document.getElementById('issueInput').value.trim();
+        function showContent(chapterId) {
+            const content = contents[chapterId];
             if (!content) return;
-            
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            const item = proj?.items?.find(i => i.id === itemId);
-            if (!item) return;
 
-            if (!item.issuesComments) item.issuesComments = [];
-            item.issuesComments.push({
-                content: content,
-                timestamp: new Date().toISOString()
-            });
-            document.getElementById('issueInput').value = '';
-            saveData();
-            renderComments('issues', item);
+            contentDisplay.innerHTML = `<h3>${content.title}</h3><p>${content.text}</p>`;
+            contentArea.classList.add("active");
         }
 
-        function addStatusComment(itemId) {
-            const content = document.getElementById('statusInput').value.trim();
-            if (!content) return;
-            
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            const item = proj?.items?.find(i => i.id === itemId);
-            if (!item) return;
-
-            if (!item.statusComments) item.statusComments = [];
-            item.statusComments.push({
-                content: content,
-                timestamp: new Date().toISOString()
-            });
-            document.getElementById('statusInput').value = '';
-            saveData();
-            renderComments('status', item);
-        }
-
-        function addStumbleComment(itemId) {
-            const content = document.getElementById('stumbleInput').value.trim();
-            if (!content) return;
-            
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            const item = proj?.items?.find(i => i.id === itemId);
-            if (!item) return;
-
-            if (!item.stumblesComments) item.stumblesComments = [];
-            item.stumblesComments.push({
-                content: content,
-                timestamp: new Date().toISOString()
-            });
-            document.getElementById('stumbleInput').value = '';
-            saveData();
-            renderComments('stumbles', item);
-        }
-
-        function editComment(itemId, type, commentIdx) {
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            const item = proj?.items?.find(i => i.id === itemId);
-            const comment = item?.[type + 'Comments']?.[commentIdx];
-            if (!comment) return;
-
-            showModal('コメント編集', (content) => {
-                comment.content = content;
-                saveData();
-                renderComments(type, item);
-            }, comment.content);
-        }
-
-        function deleteComment(itemId, type, commentIdx) {
-            if (!confirm('削除しますか？')) return;
-            const cat = allData.categories.find(c => c.id === currentCategory);
-            const proj = cat?.projects?.find(p => p.id === currentProject);
-            const item = proj?.items?.find(i => i.id === itemId);
-            if (item?.[type + 'Comments']) {
-                item[type + 'Comments'].splice(commentIdx, 1);
-                saveData();
-                renderComments(type, item);
+        async function saveLoginRecord(user) {
+            try {
+                await set(ref(database, `loginUsers/${user.uid}`), {
+                    uid: user.uid,
+                    name: user.displayName || "",
+                    email: user.email || "",
+                    lastLoginAt: serverTimestamp()
+                });
+            } catch (error) {
+                console.error("ログイン記録の保存に失敗:", error);
             }
         }
 
-        // ===== Utilities =====
-        function showModal(title, callback, defaultValue = '') {
-            const modal = document.getElementById('addItemModal');
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('itemNameInput').value = defaultValue;
-            document.getElementById('itemNameInput').focus();
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add("show");
+        }
 
-            const confirmBtn = document.getElementById('confirmAddBtn');
-            const cancelBtn = document.getElementById('cancelAddBtn');
+        function clearError() {
+            errorMessage.textContent = "";
+            errorMessage.classList.remove("show");
+        }
 
-            const handleConfirm = () => {
-                const value = document.getElementById('itemNameInput').value.trim();
-                if (value) {
-                    callback(value);
-                    modal.classList.remove('active');
-                    confirmBtn.removeEventListener('click', handleConfirm);
-                    cancelBtn.removeEventListener('click', handleCancel);
-                }
+        function toJapaneseError(error) {
+            const code = error?.code || "unknown";
+            const messages = {
+                "auth/unauthorized-domain": "このドメインがFirebase Authenticationの承認済みドメインに入っていません。Firebase ConsoleでAuthorized domainsを確認してください。",
+                "auth/popup-blocked": "ブラウザがログイン用ポップアップをブロックしています。ポップアップを許可して再試行してください。",
+                "auth/popup-closed-by-user": "ログイン画面が閉じられました。もう一度ログインしてください。",
+                "auth/operation-not-allowed": "Firebase ConsoleのAuthenticationでGoogleログインが有効になっていません。",
+                "auth/invalid-api-key": "Firebase設定のapiKeyが正しくありません。"
             };
 
-            const handleCancel = () => {
-                modal.classList.remove('active');
-                confirmBtn.removeEventListener('click', handleConfirm);
-                cancelBtn.removeEventListener('click', handleCancel);
-            };
-
-            confirmBtn.addEventListener('click', handleConfirm);
-            cancelBtn.addEventListener('click', handleCancel);
-
-            document.getElementById('itemNameInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleConfirm();
-            });
-
-            modal.classList.add('active');
+            return messages[code] || `ログインできませんでした。エラーコード: ${code}`;
         }
-
-        function showLoginError(message) {
-            const errorDiv = document.getElementById('loginError');
-            errorDiv.textContent = message;
-            errorDiv.classList.add('show');
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Initialize
-        window.addEventListener('load', () => {
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    currentUser = user;
-                    document.getElementById('userEmail').textContent = user.email;
-                }
-            });
-        });
     </script>
 </body>
 </html>
