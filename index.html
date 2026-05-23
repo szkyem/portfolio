@@ -265,6 +265,16 @@
                     <button onclick="goHome()">ホーム</button>
                 </div>
                 <div id="storageWarning"></div>
+                
+                <div style="margin-bottom: 2rem; padding: 1rem; background: #E3F2FD; border-radius: 8px; border: 1px solid #90CAF9;">
+                    <h4 style="margin-bottom: 0.75rem; color: #1565C0;">📥 データのインポート・エクスポート</h4>
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <input type="file" id="jsonImportInput" accept=".json" style="padding: 0.5rem; border: 1px solid #90CAF9; border-radius: 4px; flex: 1; min-width: 200px;">
+                        <button onclick="importJSON()" style="background: #1976D2; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 600;">インポート</button>
+                        <button onclick="exportJSON()" style="background: #388E3C; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 600;">エクスポート</button>
+                    </div>
+                </div>
+                
                 <div id="categoriesGrid" class="grid"></div>
                 <button class="add-btn" onclick="addCategory()">+ 大項目を追加</button>
 
@@ -367,7 +377,10 @@
             portfolioSection.classList.add("hidden");
         }
 
+        let currentUser = null;
+
         function showPortfolioUI(user) {
+            currentUser = user;
             userEmail.textContent = user.email || user.displayName || user.uid;
             loginSection.classList.add("hidden");
             portfolioSection.classList.remove("hidden");
@@ -399,24 +412,52 @@
             const kb = (size / 1024).toFixed(2);
             const percent = ((size / (5 * 1024 * 1024)) * 100).toFixed(1);
 
-            document.getElementById('storageWarning').innerHTML = percent > 80
-                ? `<div class="warning">⚠️ データサイズが大きくなっています。(${kb}KB / 5MB の目安)</div>`
-                : '';
+            if (percent > 80) {
+                document.getElementById('storageWarning').innerHTML = `
+                    <div class="warning">
+                        ⚠️ ストレージが ${percent}% 満杯です。(${kb}KB / 5MB)
+                    </div>
+                `;
+            } else {
+                document.getElementById('storageWarning').innerHTML = '';
+            }
 
-            localStorage.setItem('portfolioDataBackup', json);
+            localStorage.setItem('portfolioData', json);
         }
 
         async function loadData() {
-            const saved = localStorage.getItem('portfolioDataBackup');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    const rawCategories = Array.isArray(parsed?.categories)
-                        ? parsed.categories
-                        : Object.values(parsed?.categories || {});
-                    data.categories = rawCategories;
-                } catch (error) {
-                    console.error('データ読み込みエラー:', error);
+            if (!currentUser) return;
+
+            try {
+                const snapshot = await get(ref(database, `users/${currentUser.uid}/portfolioData`));
+                
+                if (snapshot.exists()) {
+                    const remoteData = snapshot.val();
+                    data.categories = remoteData.categories || [];
+                    console.log('Firebase から読み込み成功');
+                } else {
+                    // Firebase にデータがない場合、localStorage から読み込み
+                    const saved = localStorage.getItem('portfolioDataBackup');
+                    if (saved) {
+                        try {
+                            const parsed = JSON.parse(saved);
+                            data.categories = parsed.categories || [];
+                        } catch (error) {
+                            console.error('localStorage 読み込みエラー:', error);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Firebase 読み込みエラー:', error);
+                // エラーの場合、localStorage から読み込み
+                const saved = localStorage.getItem('portfolioDataBackup');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        data.categories = parsed.categories || [];
+                    } catch (error) {
+                        console.error('localStorage 読み込みエラー:', error);
+                    }
                 }
             }
             goHome();
@@ -1204,6 +1245,49 @@
             }
 
             document.getElementById('breadcrumb').innerHTML = html;
+        }
+
+        function exportJSON() {
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `portfolio_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('エクスポートしました');
+        }
+
+        function importJSON() {
+            const input = document.getElementById('jsonImportInput');
+            const file = input.files[0];
+            
+            if (!file) {
+                alert('ファイルを選択してください');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    
+                    if (!imported.categories) {
+                        alert('無効なJSONファイルです。categoriesプロパティが必要です。');
+                        return;
+                    }
+
+                    data.categories = imported.categories;
+                    await saveData();
+                    goHome();
+                    alert('インポートしました');
+                    input.value = ''; // ファイル入力をリセット
+                } catch (error) {
+                    alert('JSONファイルの読み込みに失敗しました: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
         }
 
         window.addEventListener('popstate', goHome);
