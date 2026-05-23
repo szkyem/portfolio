@@ -67,6 +67,21 @@
         .stumble-entry { margin-bottom: 2rem; position: relative; }
         .stumble-dot { position: absolute; left: -8px; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; background: #FF6B6B; top: 0; }
         .stumble-card { padding: 1rem; border-radius: 8px; border: 1px solid #FFCDD2; background: #FFEBEE; }
+        .stumble-content { white-space: pre-wrap; word-wrap: break-word; }
+        .milestone-timeline { position: relative; padding-left: 1.5rem; }
+        .milestone-line { position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #e0e0e0; }
+        .milestone-entry { margin-bottom: 2rem; position: relative; cursor: default; }
+        .milestone-dot { position: absolute; left: -8px; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; background: #4CAF50; top: 0; }
+        .milestone-card { padding: 1rem; border-radius: 8px; border: 1px solid #C8E6C9; background: #F1F8E9; transition: all 0.2s; }
+        .milestone-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .milestone-card.editing { background: #FFF9C4; border-color: #FBC02D; }
+        .milestone-date { font-size: 11px; color: #999; margin-bottom: 0.5rem; }
+        .milestone-content { font-size: 13px; color: #333; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; padding: 0.75rem; background: white; border-radius: 4px; margin-bottom: 0.5rem; }
+        .milestone-content.editable { cursor: pointer; background: #FFFACD; }
+        .milestone-content.editable:hover { background: #FFEB99; }
+        .milestone-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+        .milestone-delete { background: #FF6B6B; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 3px; font-size: 10px; cursor: pointer; }
+        .milestone-edit-hint { font-size: 10px; color: #999; font-style: italic; }
         .file-link { color: #1D9E75; cursor: pointer; text-decoration: underline; font-size: 12px; }
         .file-link:hover { color: #0a6c4a; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
@@ -83,9 +98,9 @@
         @media (max-width: 768px) { .panels { grid-template-columns: 1fr; } h1 { font-size: 24px; } .detail-title { font-size: 20px; } }
     </style>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 </head>
 <body>
     <div class="container">
@@ -131,7 +146,6 @@
 
             <div id="itemsView" style="display: none;">
                 <div class="detail-view" id="itemsDetail"></div>
-                <div id="itemTabs"></div>
             </div>
         </div>
     </div>
@@ -144,34 +158,42 @@
     </div>
 
     <script>
-        // ========== Firebase 設定 ==========
-        const firebaseConfig = {
-  apiKey: "AIzaSyB2CH410X3yk4YTJWFC2JyEWScXZn77Z3I",
-  authDomain: "my-portfolio-d3560.firebaseapp.com",
-  databaseURL: "https://my-portfolio-d3560-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "my-portfolio-d3560",
-  storageBucket: "my-portfolio-d3560.firebasestorage.app",
-  messagingSenderId: "293517847141",
-  appId: "1:293517847141:web:bec173cf345b47cf91f48c",
-  measurementId: "G-5Y46F21GN0"
-        };
-
-        firebase.initializeApp(firebaseConfig);
+        // ⚠️ 重要：config.js を先に読み込むことが必須
+        // <script src="config.js"></script> を HTML の body タグ末尾に追加してください
+        
+        // config.js から firebase credentials が読み込まれると
+        // window.FIREBASE_CONFIG に Firebase 設定が格納されます
+        
+        // Firebase 初期化
+        // config.js が読み込まれるまで待機
+        if (typeof window.FIREBASE_CONFIG === 'undefined') {
+            console.error('❌ エラー: config.js が読み込まれていません。');
+            console.error('HTML の </body> タグの直前に以下を追加してください：');
+            console.error('  <script src="config.js"></script>');
+            alert('設定ファイルが見つかりません。管理者に連絡してください。');
+        } else {
+            firebase.initializeApp(window.FIREBASE_CONFIG);
+        }
+        
         const db = firebase.database();
         const auth = firebase.auth();
         const provider = new firebase.auth.GoogleAuthProvider();
+        
+        // スマホ対応：persistenceを設定
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(error => {
+            console.error('Persistence設定エラー:', error);
+        });
 
-        // ========== アプリ状態 ==========
         const data = { categories: [] };
         let curr = { category: null, project: null, item: null };
         let currentUser = null;
         let isMember = false;
         let isAdmin = false;
-        let authReady = false;
+        let activeTabIndex = 0;  // ← 現在のタブインデックスを記録
 
-        // ========== 認証 ==========
         function loginWithGoogle() {
-            auth.signInWithPopup(provider).catch(error => {
+            // スマホ対応：popupの代わりにredirectを使用
+            auth.signInWithRedirect(provider).catch(error => {
                 console.error('Googleログインエラー:', error);
                 showMessage('Googleログインに失敗しました: ' + error.message, 'error');
             });
@@ -184,30 +206,28 @@
             });
         }
 
-auth.onAuthStateChanged(async user => {
-    clearMessage();
-    currentUser = user;
-    authReady = true;
+        auth.onAuthStateChanged(async user => {
+            clearMessage();
+            currentUser = user;
 
-    if (!user) {
-        isMember = false;
-        isAdmin = false;
-        updateAuthUI();
-        showLoginScreen();
-        return;
-    }
+            if (!user) {
+                isMember = false;
+                isAdmin = false;
+                updateAuthUI();
+                showLoginScreen();
+                return;
+            }
 
-    console.log("UID:", user.uid);
-    console.log("EMAIL:", user.email);
-    alert("UID: " + user.uid);
+            updateAuthInfo('認証確認中…');
 
-    updateAuthInfo('認証確認中…');
-
-    try {
-        const [memberSnap, adminSnap] = await Promise.all([
-            db.ref('members/' + user.uid).once('value'),
-            db.ref('admins/' + user.uid).once('value')
-        ]);
+            try {
+                // Redirectからの戻り値を処理
+                const result = await auth.getRedirectResult();
+                
+                const [memberSnap, adminSnap] = await Promise.all([
+                    db.ref('members/' + user.uid).once('value'),
+                    db.ref('admins/' + user.uid).once('value')
+                ]);
 
                 isMember = memberSnap.val() === true;
                 isAdmin = adminSnap.val() === true;
@@ -247,10 +267,7 @@ auth.onAuthStateChanged(async user => {
                 ? '<span class="role-badge role-admin">管理者</span>'
                 : '<span class="role-badge role-member">閲覧者</span>';
 
-            authInfo.innerHTML = `
-                ${escapeHtml(currentUser.email || 'ログイン中')}
-                ${roleHtml}
-            `;
+            authInfo.innerHTML = `${escapeHtml(currentUser.email || 'ログイン中')} ${roleHtml}`;
             loginBtn.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
         }
@@ -283,110 +300,131 @@ auth.onAuthStateChanged(async user => {
             return true;
         }
 
-        // ========== メッセージ ==========
         function showMessage(message, type = 'notice') {
-            const area = document.getElementById('messageArea');
-            area.innerHTML = `<div class="${type}">${escapeHtml(message)}</div>`;
+            document.getElementById('messageArea').innerHTML = `<div class="${type}">${escapeHtml(message)}</div>`;
         }
 
         function clearMessage() {
             document.getElementById('messageArea').innerHTML = '';
         }
 
-        // ========== データ入出力 ==========
+        function normalizeTask(task) {
+            return {
+                text: task?.text || '',
+                done: !!task?.done
+            };
+        }
+
+        function normalizePhase(ph, idx = 0) {
+            const tasks = Array.isArray(ph?.tasks) ? ph.tasks : Object.values(ph?.tasks || {});
+            return {
+                number: ph?.number || (idx + 1),
+                title: ph?.title || `Phase ${idx + 1}`,
+                tasks: tasks.map(normalizeTask)
+            };
+        }
+
+        function normalizeItem(item) {
+            const phases = Array.isArray(item?.phases) ? item.phases : Object.values(item?.phases || {});
+            const statusMilestones = Array.isArray(item?.statusMilestones) ? item.statusMilestones : Object.values(item?.statusMilestones || {});
+            return {
+                id: item?.id || ('i_' + Date.now() + Math.random()),
+                name: item?.name || '無題アイテム',
+                icon: item?.icon || '📝',
+                phases: phases.map(normalizePhase),
+                stumbles: Array.isArray(item?.stumbles) ? item.stumbles : Object.values(item?.stumbles || {}),
+                issueAttachments: Array.isArray(item?.issueAttachments) ? item.issueAttachments : Object.values(item?.issueAttachments || {}),
+                statusAttachments: Array.isArray(item?.statusAttachments) ? item.statusAttachments : Object.values(item?.statusAttachments || {}),
+                statusMilestones: statusMilestones,
+                issueComment: item?.issueComment || '',
+                statusComment: item?.statusComment || '',
+                roadmapComment: item?.roadmapComment || ''
+            };
+        }
+
+        function normalizeProject(proj) {
+            const items = Array.isArray(proj?.items) ? proj.items : Object.values(proj?.items || {});
+            return {
+                id: proj?.id || ('p_' + Date.now() + Math.random()),
+                name: proj?.name || '無題プロジェクト',
+                items: items.map(normalizeItem)
+            };
+        }
+
+        function normalizeCategory(cat) {
+            const projects = Array.isArray(cat?.projects) ? cat.projects : Object.values(cat?.projects || {});
+            return {
+                id: cat?.id || ('c_' + Date.now() + Math.random()),
+                name: cat?.name || '無題カテゴリ',
+                icon: cat?.icon || '📁',
+                projects: projects.map(normalizeProject)
+            };
+        }
+
         async function saveData() {
             const json = JSON.stringify(data);
             const size = new Blob([json]).size;
             const kb = (size / 1024).toFixed(2);
             const percent = ((size / (5 * 1024 * 1024)) * 100).toFixed(1);
 
-            if (percent > 80) {
-                document.getElementById('storageWarning').innerHTML = `
-                    <div class="warning">
-                        ⚠️ ストレージが ${percent}% 満杯です。(${kb}KB / 5MB)
-                    </div>
-                `;
-            } else {
-                document.getElementById('storageWarning').innerHTML = '';
-            }
+            document.getElementById('storageWarning').innerHTML = percent > 80
+                ? `<div class="warning">⚠️ データサイズが大きくなっています。(${kb}KB / 5MB の目安)</div>`
+                : '';
 
-            localStorage.setItem('portfolioData', json);
-            
-            // Firebase に保存
-            if (currentUser) {
-                try {
-                    await set(ref(database, `users/${currentUser.uid}/portfolioData`), data);
-                    console.log('Firebase 保存成功');
-                } catch (error) {
-                    console.error('Firebase 保存エラー:', error);
+            localStorage.setItem('portfolioDataBackup', json);
+
+            if (!isAdmin) return;
+
+            try {
+                await db.ref('portfolioData').set(JSON.parse(json));
+                console.log('Firebase 保存成功');
+            } catch (error) {
+                console.error('Firebase 保存エラー:', error);
+                showMessage('Firebase 保存エラー: ' + error.message, 'error');
+            }
+        }
+
+        async function loadData() {
+            if (!currentUser || !isMember) return;
+
+            try {
+                const snapshot = await db.ref('portfolioData').once('value');
+                data.categories = [];
+
+                if (snapshot.exists()) {
+                    const remoteData = snapshot.val();
+                    const rawCategories = Array.isArray(remoteData?.categories)
+                        ? remoteData.categories
+                        : Object.values(remoteData?.categories || {});
+                    data.categories = rawCategories.map(normalizeCategory);
+                } else {
+                    const saved = localStorage.getItem('portfolioDataBackup');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        const rawCategories = Array.isArray(parsed?.categories)
+                            ? parsed.categories
+                            : Object.values(parsed?.categories || {});
+                        data.categories = rawCategories.map(normalizeCategory);
+                    }
                 }
+
+                checkStorage();
+                goHome();
+            } catch (error) {
+                console.error('Firebase 読み込みエラー:', error);
+                const saved = localStorage.getItem('portfolioDataBackup');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    const rawCategories = Array.isArray(parsed?.categories)
+                        ? parsed.categories
+                        : Object.values(parsed?.categories || {});
+                    data.categories = rawCategories.map(normalizeCategory);
+                }
+                checkStorage();
+                goHome();
+                showMessage('Firebase からの読み込みに失敗したため、ローカルバックアップを表示しています。', 'notice');
             }
         }
-
-async function loadData() {
-    if (!currentUser) return;
-
-    try {
-        const snapshot = await get(ref(database, `users/${currentUser.uid}/portfolioData`));
-        data.categories = [];
-
-        if (snapshot.exists()) {
-            const remoteData = snapshot.val();
-            Object.assign(data, remoteData);
-
-            // categories を配列化
-            if (!Array.isArray(data.categories)) {
-                data.categories = Object.values(data.categories || {});
-            }
-
-            // 不足プロパティを補完
-            data.categories = data.categories.map(cat => ({
-                id: cat.id || ('c_' + Date.now() + Math.random()),
-                name: cat.name || '無題カテゴリ',
-                icon: cat.icon || '📁',
-                projects: Array.isArray(cat.projects)
-                    ? cat.projects
-                    : Object.values(cat.projects || {}).map(proj => ({
-                        id: proj.id || ('p_' + Date.now() + Math.random()),
-                        name: proj.name || '無題プロジェクト',
-                        items: Array.isArray(proj.items)
-                            ? proj.items
-                            : Object.values(proj.items || {}).map(item => ({
-                                id: item.id || ('i_' + Date.now() + Math.random()),
-                                name: item.name || '無題アイテム',
-                                icon: item.icon || '📝',
-                                phases: Array.isArray(item.phases)
-                                    ? item.phases
-                                    : Object.values(item.phases || {}).map(ph => ({
-                                        number: ph.number || 1,
-                                        title: ph.title || 'Phase',
-                                        tasks: Array.isArray(ph.tasks) ? ph.tasks : Object.values(ph.tasks || {})
-                                    })),
-                                stumbles: Array.isArray(item.stumbles) ? item.stumbles : Object.values(item.stumbles || {}),
-                                issueAttachments: Array.isArray(item.issueAttachments) ? item.issueAttachments : Object.values(item.issueAttachments || {}),
-                                statusAttachments: Array.isArray(item.statusAttachments) ? item.statusAttachments : Object.values(item.statusAttachments || {}),
-                                issueComment: item.issueComment || '',
-                                statusComment: item.statusComment || '',
-                                roadmapComment: item.roadmapComment || ''
-                            }))
-                    }))
-            }));
-        } else {
-            const saved = localStorage.getItem('portfolioData');
-            if (saved) Object.assign(data, JSON.parse(saved));
-        }
-
-        checkStorage();
-        goHome();
-    } catch (error) {
-        console.error('Firebase 読み込みエラー:', error);
-        const saved = localStorage.getItem('portfolioData');
-        if (saved) Object.assign(data, JSON.parse(saved));
-        checkStorage();
-        goHome();
-        showMessage('Firebase からの読み込みに失敗したため、ローカルバックアップを表示しています。', 'notice');
-    }
-}
 
         function checkStorage() {
             const json = JSON.stringify(data);
@@ -394,18 +432,11 @@ async function loadData() {
             const kb = (size / 1024).toFixed(2);
             const percent = ((size / (5 * 1024 * 1024)) * 100).toFixed(1);
 
-            if (percent > 80) {
-                document.getElementById('storageWarning').innerHTML = `
-                    <div class="warning">
-                        ⚠️ データサイズが大きくなっています。(${kb}KB / 5MB の目安)
-                    </div>
-                `;
-            } else {
-                document.getElementById('storageWarning').innerHTML = '';
-            }
+            document.getElementById('storageWarning').innerHTML = percent > 80
+                ? `<div class="warning">⚠️ データサイズが大きくなっています。(${kb}KB / 5MB の目安)</div>`
+                : '';
         }
 
-        // ========== ユーティリティ ==========
         function escapeHtml(str) {
             return String(str).replace(/[&<>"']/g, s => ({
                 '&': '&amp;',
@@ -423,15 +454,9 @@ async function loadData() {
             if (fileData.startsWith('data:image')) {
                 preview.innerHTML = `<img src="${fileData}" style="max-width: 100%; max-height: 60vh; border-radius: 4px;">`;
             } else if (fileData.startsWith('data:application/pdf')) {
-                preview.innerHTML = `
-                    <p>${escapeHtml(fileName)}</p>
-                    <embed src="${fileData}" type="application/pdf" style="width: 100%; height: 60vh; border-radius: 4px;">
-                `;
+                preview.innerHTML = `<p>${escapeHtml(fileName)}</p><embed src="${fileData}" type="application/pdf" style="width: 100%; height: 60vh; border-radius: 4px;">`;
             } else {
-                preview.innerHTML = `
-                    <p style="font-weight: 600; margin-bottom: 1rem;">${escapeHtml(fileName)}</p>
-                    <a href="${fileData}" download="${escapeHtml(fileName)}" style="display: inline-block; background: #1976D2; color: white; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none;">ダウンロード</a>
-                `;
+                preview.innerHTML = `<p style="font-weight: 600; margin-bottom: 1rem;">${escapeHtml(fileName)}</p><a href="${fileData}" download="${escapeHtml(fileName)}" style="display: inline-block; background: #1976D2; color: white; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none;">ダウンロード</a>`;
             }
             modal.classList.add('show');
         }
@@ -450,76 +475,47 @@ async function loadData() {
             applyRoleUI();
         }
 
-function renderCategories() {
-    const grid = document.getElementById('categoriesGrid');
-    grid.innerHTML = '';
+        function renderCategories() {
+            const grid = document.getElementById('categoriesGrid');
+            grid.innerHTML = '';
 
-    data.categories.forEach((cat, idx) => {
-        const card = document.createElement('div');
-        card.className = 'card ' + (idx % 2 === 0 ? 'teal' : 'slate');
-        card.onclick = () => showProjects(cat.id);
+            data.categories.forEach((cat, idx) => {
+                const card = document.createElement('div');
+                card.className = 'card ' + (idx % 2 === 0 ? 'teal' : 'slate');
+                card.onclick = () => showProjects(cat.id);
 
-        const projects = Array.isArray(cat.projects) ? cat.projects : Object.values(cat.projects || {});
+                const total = cat.projects.reduce((s, p) => s + p.items.reduce((ss, i) => ss + i.phases.reduce((sss, ph) => sss + ph.tasks.length, 0), 0), 0);
+                const done = cat.projects.reduce((s, p) => s + p.items.reduce((ss, i) => ss + i.phases.reduce((sss, ph) => sss + ph.tasks.filter(t => t.done).length, 0), 0), 0);
+                const pct = total > 0 ? Math.round(done / total * 100) : 0;
 
-        const total = projects.reduce((s, p) => {
-            const items = Array.isArray(p.items) ? p.items : Object.values(p.items || {});
-            return s + items.reduce((ss, i) => {
-                const phases = Array.isArray(i.phases) ? i.phases : Object.values(i.phases || {});
-                return ss + phases.reduce((sss, ph) => {
-                    const tasks = Array.isArray(ph.tasks) ? ph.tasks : Object.values(ph.tasks || {});
-                    return sss + tasks.length;
-                }, 0);
-            }, 0);
-        }, 0);
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; gap: 0.75rem;">
+                        <div ondblclick="event.stopPropagation(); editCategoryIcon(${idx})">
+                            <div class="card-icon">${escapeHtml(cat.icon)}</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="card-title" ondblclick="event.stopPropagation(); editCategoryName(${idx})">${escapeHtml(cat.name)}</div>
+                        </div>
+                        ${isAdmin ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteCategory(${idx})">削除</button>` : ''}
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 11px;">
+                            <span>進捗</span><span style="font-weight: 600;">${pct}%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
 
-        const done = projects.reduce((s, p) => {
-            const items = Array.isArray(p.items) ? p.items : Object.values(p.items || {});
-            return s + items.reduce((ss, i) => {
-                const phases = Array.isArray(i.phases) ? i.phases : Object.values(i.phases || {});
-                return ss + phases.reduce((sss, ph) => {
-                    const tasks = Array.isArray(ph.tasks) ? ph.tasks : Object.values(ph.tasks || {});
-                    return sss + tasks.filter(t => t.done).length;
-                }, 0);
-            }, 0);
-        }, 0);
-
-        const pct = total > 0 ? Math.round(done / total * 100) : 0;
-
-        card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; gap: 0.75rem;">
-                <div ondblclick="event.stopPropagation(); editCategoryIcon()">
-                    <div class="card-icon">${escapeHtml(cat.icon || '📁')}</div>
-                </div>
-                <div style="flex: 1;">
-                    <div class="card-title" ondblclick="event.stopPropagation(); editCategoryName(${idx})">${escapeHtml(cat.name || '無題カテゴリ')}</div>
-                </div>
-                ${isAdmin ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteCategory(${idx})">削除</button>` : ''}
-            </div>
-            <div style="margin-top: 1rem;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 11px;">
-                    <span>進捗</span><span style="font-weight: 600;">${pct}%</span>
-                </div>
-                <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
-            </div>
-        `;
-        grid.appendChild(card);
-    });
-
-    applyRoleUI();
-}
-
-        function editCategoryIcon() {
+        function editCategoryIcon(idx) {
             if (!requireAdmin()) return;
-            if (curr.category) return;
-
-            const idx = data.categories.findIndex(c => c.id === curr.category);
-            if (idx >= 0) {
-                const newIcon = prompt('アイコン:', data.categories[idx].icon);
-                if (newIcon) {
-                    data.categories[idx].icon = newIcon;
-                    saveData();
-                    renderCategories();
-                }
+            const newIcon = prompt('アイコン:', data.categories[idx].icon);
+            if (newIcon) {
+                data.categories[idx].icon = newIcon;
+                saveData();
+                renderCategories();
             }
         }
 
@@ -556,42 +552,50 @@ function renderCategories() {
             curr.project = null;
             curr.item = null;
             history.pushState({}, '');
+
             const cat = data.categories.find(c => c.id === catId);
+            if (!cat) return;
 
             document.getElementById('homeView').style.display = 'none';
             document.getElementById('projectsView').style.display = 'block';
             document.getElementById('itemsView').style.display = 'none';
-            document.getElementById('projectsDetail').innerHTML = `<div class="detail-header"><h2 class="detail-title" ondblclick="event.stopPropagation(); editCategoryNameFromProjects()">${escapeHtml(cat.icon)} ${escapeHtml(cat.name)}</h2></div>`;
+            document.getElementById('projectsDetail').innerHTML =
+                `<div class="detail-header"><h2 class="detail-title" ondblclick="event.stopPropagation(); editCategoryNameFromProjects()">${escapeHtml(cat.icon)} ${escapeHtml(cat.name)}</h2></div>`;
 
             const grid = document.getElementById('projectsGrid');
             grid.innerHTML = '';
 
             cat.projects.forEach((proj, pIdx) => {
-                proj.items.forEach((item, iIdx) => {
-                    const card = document.createElement('div');
-                    card.className = 'card teal';
-                    card.onclick = () => showItems(catId, proj.id, item.id);
+                const card = document.createElement('div');
+                card.className = 'card teal';
+                card.onclick = () => showItems(catId, proj.id);
 
-                    const total = item.phases.reduce((s, p) => s + p.tasks.length, 0);
-                    const done = item.phases.reduce((s, p) => s + p.tasks.filter(t => t.done).length, 0);
-                    const pct = total > 0 ? Math.round(done / total * 100) : 0;
-
-                    card.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; gap: 0.75rem;">
-                            <div style="flex: 1;">
-                                <strong ondblclick="event.stopPropagation(); editItemName(${pIdx}, ${iIdx})" style="cursor: pointer;">${escapeHtml(item.icon)} ${escapeHtml(item.name)}</strong>
-                            </div>
-                            ${isAdmin ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteItem(${pIdx}, ${iIdx})">削除</button>` : ''}
-                        </div>
-                        <div style="margin-top: 0.75rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-size: 10px;">
-                                <span>進捗</span><span style="font-weight: 600;">${pct}%</span>
-                            </div>
-                            <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
-                        </div>
-                    `;
-                    grid.appendChild(card);
+                let total = 0;
+                let done = 0;
+                proj.items.forEach(item => {
+                    item.phases.forEach(ph => {
+                        total += ph.tasks.length;
+                        done += ph.tasks.filter(t => t.done).length;
+                    });
                 });
+                const pct = total > 0 ? Math.round(done / total * 100) : 0;
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; gap: 0.75rem;">
+                        <div style="flex: 1;">
+                            <strong ondblclick="event.stopPropagation(); editProjectName(${pIdx})" style="cursor: pointer;">${escapeHtml(proj.name)}</strong>
+                        </div>
+                        ${isAdmin ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteProject(${pIdx})">削除</button>` : ''}
+                    </div>
+                    <div style="margin-top: 0.5rem; font-size: 12px; color: #666;">小項目数: ${proj.items.length}</div>
+                    <div style="margin-top: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-size: 10px;">
+                            <span>進捗</span><span style="font-weight: 600;">${pct}%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
+                    </div>
+                `;
+                grid.appendChild(card);
             });
 
             updateBreadcrumb();
@@ -609,13 +613,13 @@ function renderCategories() {
             }
         }
 
-        function editItemName(pIdx, iIdx) {
+        function editProjectName(pIdx) {
             if (!requireAdmin()) return;
             const cat = data.categories.find(c => c.id === curr.category);
-            const item = cat.projects[pIdx].items[iIdx];
-            const newName = prompt('小項目名:', item.name);
+            const proj = cat.projects[pIdx];
+            const newName = prompt('中項目名:', proj.name);
             if (newName && newName.trim()) {
-                item.name = newName.trim();
+                proj.name = newName.trim();
                 saveData();
                 showProjects(curr.category);
             }
@@ -627,49 +631,155 @@ function renderCategories() {
             if (!name) return;
 
             const cat = data.categories.find(c => c.id === curr.category);
-            const proj = { id: 'p_' + Date.now(), name, items: [] };
-            const itemName = prompt('小項目名 (スキップ:キャンセル):');
-
-            if (itemName) {
-                const itemIcon = prompt('アイコン:') || '📝';
-                proj.items.push({
-                    id: 'i_' + Date.now(),
-                    name: itemName,
-                    icon: itemIcon,
-                    phases: [{ number: 1, title: 'Phase 1', tasks: [] }],
-                    issuesSolutions: [{ issue: '', solution: '', comment: '' }],
-                    stumbles: [],
-                    issueComment: '',
-                    statusComment: '',
-                    issueAttachments: [],
-                    statusAttachments: [],
-                    roadmapComment: ''
-                });
-            }
-
-            cat.projects.push(proj);
+            cat.projects.push({ id: 'p_' + Date.now(), name, items: [] });
             saveData();
             showProjects(curr.category);
         }
 
-        function deleteItem(pIdx, iIdx) {
+        function deleteProject(pIdx) {
             if (!requireAdmin()) return;
             if (!confirm('削除しますか？')) return;
             const cat = data.categories.find(c => c.id === curr.category);
-            cat.projects[pIdx].items.splice(iIdx, 1);
+            cat.projects.splice(pIdx, 1);
             saveData();
             showProjects(curr.category);
         }
 
-        function showItems(catId, projId, itemId) {
+        function showItems(catId, projId) {
+            curr.category = catId;
+            curr.project = projId;
+            curr.item = null;
+            history.pushState({}, '');
+
+            const cat = data.categories.find(c => c.id === catId);
+            const proj = cat.projects.find(p => p.id === projId);
+            if (!proj) return;
+
+            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('projectsView').style.display = 'none';
+            document.getElementById('itemsView').style.display = 'block';
+
+            document.getElementById('itemsDetail').innerHTML = `
+                <div class="detail-header">
+                    <h2 class="detail-title" ondblclick="event.stopPropagation(); editProjectNameFromItems()">${escapeHtml(proj.name)}</h2>
+                </div>
+                <div id="itemsGrid" class="grid"></div>
+                ${isAdmin ? `<button class="add-btn admin-only" onclick="addItem()">+ 小項目を追加</button>` : ''}
+            `;
+
+            const grid = document.getElementById('itemsGrid');
+            grid.innerHTML = '';
+
+            proj.items.forEach((item, iIdx) => {
+                const card = document.createElement('div');
+                card.className = 'card slate';
+                card.onclick = () => showItemDetail(catId, projId, item.id);
+
+                const total = item.phases.reduce((s, p) => s + p.tasks.length, 0);
+                const done = item.phases.reduce((s, p) => s + p.tasks.filter(t => t.done).length, 0);
+                const pct = total > 0 ? Math.round(done / total * 100) : 0;
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; gap: 0.75rem;">
+                        <div style="flex: 1;">
+                            <strong ondblclick="event.stopPropagation(); editItemName(${iIdx})" style="cursor: pointer;">${escapeHtml(item.icon)} ${escapeHtml(item.name)}</strong>
+                        </div>
+                        ${isAdmin ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteItem(${iIdx})">削除</button>` : ''}
+                    </div>
+                    <div style="margin-top: 0.5rem; font-size: 12px; color: #666;">Phase数: ${item.phases.length}</div>
+                    <div style="margin-top: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-size: 10px;">
+                            <span>進捗</span><span style="font-weight: 600;">${pct}%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            updateBreadcrumb();
+            applyRoleUI();
+        }
+
+        function editProjectNameFromItems() {
+            if (!requireAdmin()) return;
+            const cat = data.categories.find(c => c.id === curr.category);
+            const proj = cat.projects.find(p => p.id === curr.project);
+            const newName = prompt('中項目名:', proj.name);
+            if (newName && newName.trim()) {
+                proj.name = newName.trim();
+                saveData();
+                showItems(curr.category, curr.project);
+            }
+        }
+
+        function addItem() {
+            if (!requireAdmin()) return;
+            const name = prompt('小項目名:');
+            if (!name) return;
+            const icon = prompt('アイコン:') || '📝';
+
+            const cat = data.categories.find(c => c.id === curr.category);
+            const proj = cat.projects.find(p => p.id === curr.project);
+
+            proj.items.push({
+                id: 'i_' + Date.now(),
+                name,
+                icon,
+                phases: [{ number: 1, title: 'Phase 1', tasks: [] }],
+                stumbles: [],
+                issueComment: '',
+                statusComment: '',
+                issueAttachments: [],
+                statusAttachments: [],
+                roadmapComment: ''
+            });
+
+            saveData();
+            showItems(curr.category, curr.project);
+        }
+
+        function editItemName(iIdx) {
+            if (!requireAdmin()) return;
+            const cat = data.categories.find(c => c.id === curr.category);
+            const proj = cat.projects.find(p => p.id === curr.project);
+            const item = proj.items[iIdx];
+            const newName = prompt('小項目名:', item.name);
+            if (newName && newName.trim()) {
+                item.name = newName.trim();
+                saveData();
+                showItems(curr.category, curr.project);
+            }
+        }
+
+        function deleteItem(iIdx) {
+            if (!requireAdmin()) return;
+            if (!confirm('削除しますか？')) return;
+            const cat = data.categories.find(c => c.id === curr.category);
+            const proj = cat.projects.find(p => p.id === curr.project);
+            proj.items.splice(iIdx, 1);
+            saveData();
+            showItems(curr.category, curr.project);
+        }
+
+        function showItemDetail(catId, projId, itemId) {
             curr = { category: catId, project: projId, item: itemId };
             history.pushState({}, '');
 
             const item = getItem();
+            if (!item) return;
+
             document.getElementById('homeView').style.display = 'none';
             document.getElementById('projectsView').style.display = 'none';
             document.getElementById('itemsView').style.display = 'block';
-            document.getElementById('itemsDetail').innerHTML = `<div class="detail-header"><h2 class="detail-title" ondblclick="event.stopPropagation(); editItemNameFromDetail()">${escapeHtml(item.icon)} ${escapeHtml(item.name)}</h2></div>`;
+
+            document.getElementById('itemsDetail').innerHTML = `
+                <div class="detail-header">
+                    <h2 class="detail-title" ondblclick="event.stopPropagation(); editItemNameFromDetail()">${escapeHtml(item.icon)} ${escapeHtml(item.name)}</h2>
+                </div>
+                <div id="itemTabs"></div>
+            `;
+
             renderTabs(item);
             updateBreadcrumb();
             applyRoleUI();
@@ -682,15 +792,16 @@ function renderCategories() {
             if (newName && newName.trim()) {
                 item.name = newName.trim();
                 saveData();
-                renderTabs(item);
+                showItemDetail(curr.category, curr.project, curr.item);
             }
         }
 
         function getItem() {
-            return data.categories
-                .find(c => c.id === curr.category)
-                .projects.find(p => p.id === curr.project)
-                .items.find(i => i.id === curr.item);
+            const cat = data.categories.find(c => c.id === curr.category);
+            if (!cat) return null;
+            const proj = cat.projects.find(p => p.id === curr.project);
+            if (!proj) return null;
+            return proj.items.find(i => i.id === curr.item) || null;
         }
 
         function renderTabs(item) {
@@ -739,9 +850,7 @@ function renderCategories() {
                 `;
             });
 
-            if (isAdmin) {
-                roadmapHTML += `<button class="add-phase-btn" onclick="addPhase()">+ Phase 追加</button>`;
-            }
+            if (isAdmin) roadmapHTML += `<button class="add-phase-btn" onclick="addPhase()">+ Phase 追加</button>`;
 
             const total = item.phases.reduce((s, p) => s + p.tasks.length, 0);
             const done = item.phases.reduce((s, p) => s + p.tasks.filter(t => t.done).length, 0);
@@ -764,7 +873,7 @@ function renderCategories() {
                                 <label style="font-size: 11px; font-weight: 600; color: #E65100;">コメント</label>
                                 <textarea ${isAdmin ? `onchange="updateRoadmapComment(this.value)"` : 'readonly'}>${escapeHtml(item.roadmapComment || '')}</textarea>
                             </div>
-                            ${isAdmin ? `<button class="stumble-btn" onclick="addStumble(0)" style="width: 100%;">躓き履歴へ</button>` : ''}
+                            ${isAdmin ? `<button class="stumble-btn" onclick="addStumble()" style="width: 100%;">躓き履歴へ</button>` : ''}
                         </div>
                     </div>
                 </div>
@@ -801,6 +910,11 @@ function renderCategories() {
                         `).join('')}
                     </div>
                     ${isAdmin ? `<input type="file" onchange="addStatusFile(event)" style="width: 100%; padding: 0.5rem; border: 1px solid #90CAF9; border-radius: 4px; cursor: pointer;">` : ''}
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e0e0e0;">
+                        ${isAdmin ? `<button class="add-task-btn" onclick="addStatusMilestone()" style="background: #4CAF50; width: 100%; margin-bottom: 1rem;">✓ マイルストーンに追加</button>` : ''}
+                        <h4 style="margin-bottom: 1rem; color: #2E7D32; font-weight: 600;">📌 マイルストーン</h4>
+                        ${renderStatusMilestones(item, isAdmin)}
+                    </div>
                 </div>
             `;
 
@@ -813,7 +927,7 @@ function renderCategories() {
                             <div class="stumble-card" style="display: flex; justify-content: space-between; gap: 0.75rem;">
                                 <div style="flex: 1;">
                                     <p style="font-weight: 600; margin-bottom: 0.5rem;">${escapeHtml(s.date)}</p>
-                                    <p style="font-size: 12px; cursor: pointer; user-select: none;" ondblclick="event.stopPropagation(); editStumbleContent(${idx})">${escapeHtml(s.content || s.issue || '')}</p>
+                                    <p class="stumble-content" style="font-size: 12px; cursor: pointer; user-select: none;" ondblclick="event.stopPropagation(); editStumbleContent(${idx})">${escapeHtml(s.content || '')}</p>
                                 </div>
                                 ${isAdmin ? `<button class="delete-btn" onclick="deleteStumble(${idx})">削除</button>` : ''}
                             </div>
@@ -825,18 +939,31 @@ function renderCategories() {
             }
             stumblesHTML += '</div>';
 
+            // グローバル変数の activeTabIndex を使用してタブの状態を復元
             tabContents.innerHTML = `
-                <div class="tab-content active">${roadmapHTML}</div>
-                <div class="tab-content">${issuesHTML}</div>
-                <div class="tab-content">${statusHTML}</div>
-                <div class="tab-content">${stumblesHTML}</div>
+                <div class="tab-content ${activeTabIndex === 0 ? 'active' : ''}">${roadmapHTML}</div>
+                <div class="tab-content ${activeTabIndex === 1 ? 'active' : ''}">${issuesHTML}</div>
+                <div class="tab-content ${activeTabIndex === 2 ? 'active' : ''}">${statusHTML}</div>
+                <div class="tab-content ${activeTabIndex === 3 ? 'active' : ''}">${stumblesHTML}</div>
             `;
+            
+            // タブボタンの active クラスも同期
+            const allTabBtns = document.querySelectorAll('.tab-btn');
+            allTabBtns.forEach((btn, idx) => {
+                if (idx === activeTabIndex) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
             container.appendChild(tabContents);
 
             applyRoleUI();
         }
 
         function switchTab(e, idx) {
+            activeTabIndex = idx;  // ← グローバル変数に記録
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             document.querySelectorAll('.tab-content').forEach((c, i) => c.classList.toggle('active', i === idx));
@@ -893,9 +1020,10 @@ function renderCategories() {
 
         function toggleTask(phIdx, tIdx) {
             if (!requireAdmin()) return;
-            getItem().phases[phIdx].tasks[tIdx].done = !getItem().phases[phIdx].tasks[tIdx].done;
+            const item = getItem();
+            item.phases[phIdx].tasks[tIdx].done = !item.phases[phIdx].tasks[tIdx].done;
             saveData();
-            renderTabs(getItem());
+            renderTabs(item);
         }
 
         function deleteTask(phIdx, tIdx) {
@@ -924,6 +1052,99 @@ function renderCategories() {
             saveData();
         }
 
+        function renderStatusMilestones(item, isAdmin) {
+            if (!item.statusMilestones || item.statusMilestones.length === 0) {
+                return '<div style="text-align: center; color: #999; padding: 1.5rem;">マイルストーンなし</div>';
+            }
+
+            let html = '<div class="milestone-timeline"><div class="milestone-line"></div>';
+            
+            item.statusMilestones.forEach((m, idx) => {
+                html += `
+                    <div class="milestone-entry">
+                        <div class="milestone-dot"></div>
+                        <div class="milestone-card">
+                            <div class="milestone-date">📅 ${escapeHtml(m.date)}</div>
+                            <div class="milestone-content editable" 
+                                 ondblclick="editStatusMilestone(${m.id}); event.stopPropagation();"
+                                 title="ダブルクリックで編集">${escapeHtml(m.content || '')}</div>
+                            ${(m.attachments || []).length > 0 ? `
+                                <div style="margin: 0.5rem 0; font-size: 11px; color: #666;">
+                                    <strong>📎 ファイル:</strong>
+                                    ${m.attachments.map(f => `<div style="margin-top: 0.25rem;"><span class="file-link" onclick="showFile('${String(f.name).replace(/'/g, "\\'")}', '${String(f.data).replace(/'/g, "\\'")}')">${escapeHtml(f.name)}</span></div>`).join('')}
+                                </div>
+                            ` : ''}
+                            <div class="milestone-actions">
+                                ${isAdmin ? `<button class="milestone-delete" onclick="deleteStatusMilestone(${m.id})">削除</button>` : ''}
+                            </div>
+                            <div class="milestone-edit-hint">💡 ダブルクリックで編集</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            return html;
+        }
+
+        function addStatusMilestone() {
+            if (!requireAdmin()) return;
+            const item = getItem();
+            const comment = item.statusComment || '';
+            
+            if (!comment.trim()) {
+                alert('コメントを入力してください');
+                return;
+            }
+
+            if (!item.statusMilestones) {
+                item.statusMilestones = [];
+            }
+
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
+
+            item.statusMilestones.unshift({
+                id: Date.now(),
+                date: dateStr,
+                content: comment.trim(),
+                attachments: item.statusAttachments ? [...item.statusAttachments] : []
+            });
+
+            item.statusComment = '';
+            item.statusAttachments = [];
+            saveData();
+            renderTabs(item);
+            alert('マイルストーンに追加しました');
+        }
+
+        function deleteStatusMilestone(id) {
+            if (!requireAdmin()) return;
+            if (!confirm('削除しますか？')) return;
+            const item = getItem();
+            item.statusMilestones = item.statusMilestones.filter(m => m.id !== id);
+            saveData();
+            renderTabs(item);
+        }
+
+        function editStatusMilestone(id) {
+            if (!requireAdmin()) return;
+            const item = getItem();
+            const milestone = item.statusMilestones.find(m => m.id === id);
+            if (!milestone) return;
+
+            const newContent = prompt('マイルストーンを編集:', milestone.content);
+            if (newContent !== null) {
+                if (newContent.trim()) {
+                    milestone.content = newContent.trim();
+                    saveData();
+                    renderTabs(item);
+                } else {
+                    alert('空のテキストは保存できません');
+                }
+            }
+        }
+
         function addStumble() {
             if (!requireAdmin()) return;
             const item = getItem();
@@ -936,7 +1157,7 @@ function renderCategories() {
                 return;
             }
 
-            const isDuplicate = item.stumbles.some(s => s.date === dateStr && (s.content === content || s.issue === content));
+            const isDuplicate = item.stumbles.some(s => s.date === dateStr && s.content === content);
             if (isDuplicate) {
                 alert('この内容は既に追加されています');
                 return;
@@ -965,7 +1186,7 @@ function renderCategories() {
             if (!requireAdmin()) return;
             const item = getItem();
             const s = item.stumbles[idx];
-            const newContent = prompt('躓き履歴を編集:', s.content || s.issue || '');
+            const newContent = prompt('躓き履歴を編集:', s.content || '');
             if (newContent && newContent.trim()) {
                 item.stumbles[idx].content = newContent.trim();
                 item.stumbles[idx].title = newContent.substring(0, 40);
@@ -982,7 +1203,6 @@ function renderCategories() {
             const r = new FileReader();
             r.onload = () => {
                 const item = getItem();
-                if (!item.issueAttachments) item.issueAttachments = [];
                 item.issueAttachments.push({ name: f.name, data: r.result });
                 saveData();
                 renderTabs(item);
@@ -1006,7 +1226,6 @@ function renderCategories() {
             const r = new FileReader();
             r.onload = () => {
                 const item = getItem();
-                if (!item.statusAttachments) item.statusAttachments = [];
                 item.statusAttachments.push({ name: f.name, data: r.result });
                 saveData();
                 renderTabs(item);
@@ -1024,18 +1243,45 @@ function renderCategories() {
 
         function updateBreadcrumb() {
             let html = '<button onclick="goHome()">ホーム</button>';
+
             if (curr.category) {
                 const cat = data.categories.find(c => c.id === curr.category);
-                html += `<span class="separator"> > </span><button onclick="showProjects('${curr.category}')">${escapeHtml(cat.name)}</button>`;
-                if (curr.item) {
-                    const item = getItem();
-                    html += `<span class="separator"> > </span><span>${escapeHtml(item.name)}</span>`;
-                }
+                if (cat) html += `<span class="separator"> > </span><button onclick="showProjects('${curr.category}')">${escapeHtml(cat.name)}</button>`;
             }
+
+            if (curr.project) {
+                const cat = data.categories.find(c => c.id === curr.category);
+                const proj = cat?.projects.find(p => p.id === curr.project);
+                if (proj) html += `<span class="separator"> > </span><button onclick="showItems('${curr.category}', '${curr.project}')">${escapeHtml(proj.name)}</button>`;
+            }
+
+            if (curr.item) {
+                const item = getItem();
+                if (item) html += `<span class="separator"> > </span><span>${escapeHtml(item.name)}</span>`;
+            }
+
             document.getElementById('breadcrumb').innerHTML = html;
         }
 
         window.addEventListener('popstate', goHome);
     </script>
+    
+    <!-- 🔐 セキュリティ対応：Firebase credentials を config.js から読み込む -->
+    <!-- ⚠️ 重要：このスクリプトタグを削除しないでください -->
+    <!-- config.js がない場合のエラーメッセージを表示 -->
+    <script>
+        // config.js の読み込みを確認
+        if (typeof window.FIREBASE_CONFIG === 'undefined') {
+            console.warn('⚠️ 警告: config.js が読み込まれていないか見つかりません。');
+            console.warn('以下のファイルがプロジェクトフォルダにあることを確認してください：');
+            console.warn('  - config.js（Firebase credentials を含むファイル）');
+            console.warn('  - .gitignore（config.js を除外するファイル）');
+            document.body.innerHTML = '<h1 style="color: red; padding: 2rem;">❌ 設定ファイルが見つかりません</h1><p>このアプリケーションを実行するには、config.js ファイルが必要です。</p><p>管理者に連絡してください。</p>';
+        }
+    </script>
+    
+    <!-- 📄 Firebase credentials ファイルを読み込む -->
+    <!-- ⚠️ このファイルは GitHub に push されません (.gitignore で除外) -->
+    <script src="config.js"></script>
 </body>
 </html>
