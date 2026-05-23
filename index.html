@@ -423,6 +423,16 @@
             }
 
             localStorage.setItem('portfolioData', json);
+            
+            // Firebase に保存（重要！）
+            if (currentUser) {
+                try {
+                    await set(ref(database, `users/${currentUser.uid}/portfolioData`), data);
+                    console.log('Firebase 保存成功');
+                } catch (error) {
+                    console.error('Firebase 保存エラー:', error);
+                }
+            }
         }
 
         async function loadData() {
