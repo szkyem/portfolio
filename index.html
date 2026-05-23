@@ -340,7 +340,7 @@
             loginBtn.disabled = true;
 
             try {
-                await signInWithPopup(auth, provider);
+                await auth.signInWithPopup(provider);
             } catch (error) {
                 showError(toJapaneseError(error));
                 console.error(error);
@@ -351,7 +351,7 @@
 
         logoutBtn.addEventListener("click", async () => {
             clearError();
-            await signOut(auth);
+            await auth.signOut();
         });
 
         auth.onAuthStateChanged(async (user) => {
@@ -431,10 +431,10 @@
         }
 
         async function loadData() {
-            if (!currentUser) return;
+            if (!window.currentUser) return;
 
             try {
-                const snapshot = await get(ref(database, `users/${currentUser.uid}/portfolioData`));
+                const snapshot = await database.ref(`users/${window.currentUser.uid}/portfolioData`).once('value');
                 
                 if (snapshot.exists()) {
                     const remoteData = snapshot.val();
@@ -442,7 +442,7 @@
                     console.log('Firebase から読み込み成功');
                 } else {
                     // Firebase にデータがない場合、localStorage から読み込み
-                    const saved = localStorage.getItem('portfolioDataBackup');
+                    const saved = localStorage.getItem('portfolioData');
                     if (saved) {
                         try {
                             const parsed = JSON.parse(saved);
@@ -455,7 +455,7 @@
             } catch (error) {
                 console.error('Firebase 読み込みエラー:', error);
                 // エラーの場合、localStorage から読み込み
-                const saved = localStorage.getItem('portfolioDataBackup');
+                const saved = localStorage.getItem('portfolioData');
                 if (saved) {
                     try {
                         const parsed = JSON.parse(saved);
