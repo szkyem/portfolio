@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Contents</title>
+    <title>My portfolio</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -14,9 +14,7 @@
             min-height: 100vh;
         }
 
-        button, input, textarea {
-            font-family: inherit;
-        }
+        button, input, textarea { font-family: inherit; }
 
         button {
             border: none;
@@ -29,7 +27,6 @@
         }
 
         button:hover { background: #1d4ed8; }
-
         .hidden { display: none !important; }
 
         .login-container {
@@ -188,6 +185,13 @@
             background: #fff;
         }
 
+        .item-detail-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0 0 20px;
+            color: #111827;
+        }
+
         .tabs {
             display: flex;
             gap: 0;
@@ -213,14 +217,6 @@
         .tab-btn.active {
             color: #2563eb;
             border-bottom-color: #2563eb;
-        }
-
-        .panel {
-            display: none;
-        }
-
-        .panel.active {
-            display: block;
         }
 
         .phase {
@@ -265,6 +261,33 @@
             color: #9ca3af;
         }
 
+        .progress-wrap {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #bfdbfe;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13px;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            border-radius: 999px;
+            background: #dbeafe;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #2563eb;
+        }
+
         textarea {
             width: 100%;
             min-height: 110px;
@@ -274,6 +297,16 @@
             font-size: 15px;
             resize: vertical;
             margin-bottom: 12px;
+        }
+
+        .file-input {
+            display: block;
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 12px;
+            background: #fff;
         }
 
         .history {
@@ -299,6 +332,30 @@
             white-space: pre-wrap;
             line-height: 1.7;
             word-break: break-word;
+        }
+
+        .attachments {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .attachment-link {
+            display: inline-flex;
+            align-items: center;
+            max-width: 100%;
+            padding: 7px 10px;
+            border-radius: 6px;
+            background: #eef2f7;
+            color: #1f2937;
+            text-decoration: none;
+            font-size: 13px;
+            word-break: break-word;
+        }
+
+        .attachment-link:hover {
+            background: #dfe7f1;
         }
 
         .row-actions {
@@ -335,7 +392,7 @@
         <section class="login-container" id="loginSection">
             <div class="login-panel">
                 <div class="error-message" id="errorMessage"></div>
-                <h1>My Contents</h1>
+                <h1>My portfolio</h1>
                 <p>Googleアカウントでログインするとコンテンツが表示されます。</p>
                 <button class="login-button" id="loginBtn" type="button">Googleでログイン</button>
             </div>
@@ -343,7 +400,7 @@
 
         <section class="app hidden" id="portfolioSection" aria-live="polite">
             <header class="app-header">
-                <h1 class="app-title">タイトル</h1>
+                <h1 class="app-title">My portfolio</h1>
                 <button class="logout-btn" id="logoutBtn" type="button">ログアウト</button>
             </header>
 
@@ -558,37 +615,37 @@
             bindCardEditing(data.categories, "大項目名");
         }
 
-function renderProjects() {
-    const cat = getCategory();
-    cat.projects ||= [];
+        function renderProjects() {
+            const cat = getCategory();
+            cat.projects ||= [];
 
-    mainActions.innerHTML = `<button type="button" id="addProjectBtn">中項目を追加</button>`;
-    appContent.innerHTML = cat.projects.length
-        ? `<div class="grid">${cat.projects.map((proj) => cardHtml(proj, proj.items?.length || 0, "小項目")).join("")}</div>`
-        : `<div class="empty">中項目がありません。</div>`;
+            mainActions.innerHTML = `<button type="button" id="addProjectBtn">中項目を追加</button>`;
+            appContent.innerHTML = cat.projects.length
+                ? `<div class="grid">${cat.projects.map((proj) => cardHtml(proj, proj.items?.length || 0, "小項目")).join("")}</div>`
+                : `<div class="empty">中項目がありません。</div>`;
 
-    document.getElementById("addProjectBtn").addEventListener("click", addProject);
+            document.getElementById("addProjectBtn").addEventListener("click", addProject);
 
-    appContent.querySelectorAll(".card").forEach((card) => {
-        card.addEventListener("click", () => {
-            view.projectId = card.dataset.id;
+            appContent.querySelectorAll(".card").forEach((card) => {
+                card.addEventListener("click", () => {
+                    view.projectId = card.dataset.id;
 
-            const selectedProject = getProject();
-            const firstItem = selectedProject?.items?.[0];
+                    const selectedProject = getProject();
+                    const firstItem = selectedProject?.items?.[0];
 
-            if (firstItem) {
-                view.itemId = firstItem.id;
-                view.tab = "roadmap";
-            } else {
-                view.itemId = null;
-            }
+                    if (firstItem) {
+                        view.itemId = firstItem.id;
+                        view.tab = "roadmap";
+                    } else {
+                        view.itemId = null;
+                    }
 
-            render();
-        });
-    });
+                    render();
+                });
+            });
 
-    bindCardEditing(cat.projects, "中項目名");
-}
+            bindCardEditing(cat.projects, "中項目名");
+        }
 
         function renderItems() {
             const proj = getProject();
@@ -681,49 +738,53 @@ function renderProjects() {
             await persistAndRender();
         }
 
-function renderItemDetail() {
-    const item = getItem();
-    ensureItemShape(item);
+        function renderItemDetail() {
+            const item = getItem();
+            ensureItemShape(item);
 
-    mainActions.innerHTML = "";
-    appContent.innerHTML = `
-        <section class="detail">
-            <h2
-                style="font-size: 24px; font-weight: 800; margin: 0 0 20px; color: #111827;"
-                id="itemDetailTitle"
-                title="ダブルクリックで編集"
-            >${escapeHtml(item.name)}</h2>
+            mainActions.innerHTML = "";
+            appContent.innerHTML = `
+                <section class="detail">
+                    <h2 class="item-detail-title" id="itemDetailTitle" title="ダブルクリックで編集">${escapeHtml(item.name)}</h2>
 
-            <div class="tabs">
-                <button class="tab-btn ${view.tab === "roadmap" ? "active" : ""}" data-tab="roadmap">ロードマップ</button>
-                <button class="tab-btn ${view.tab === "issues" ? "active" : ""}" data-tab="issues">課題</button>
-                <button class="tab-btn ${view.tab === "status" ? "active" : ""}" data-tab="status">現状</button>
-                <button class="tab-btn ${view.tab === "stumbles" ? "active" : ""}" data-tab="stumbles">躓き履歴</button>
-            </div>
+                    <div class="tabs">
+                        <button class="tab-btn ${view.tab === "roadmap" ? "active" : ""}" data-tab="roadmap">ロードマップ</button>
+                        <button class="tab-btn ${view.tab === "issues" ? "active" : ""}" data-tab="issues">課題</button>
+                        <button class="tab-btn ${view.tab === "status" ? "active" : ""}" data-tab="status">現状</button>
+                        <button class="tab-btn ${view.tab === "stumbles" ? "active" : ""}" data-tab="stumbles">躓き履歴</button>
+                    </div>
 
-            <div id="tabContent"></div>
-        </section>
-    `;
+                    <div id="tabContent"></div>
+                </section>
+            `;
 
-    document.getElementById("itemDetailTitle").addEventListener("dblclick", async () => {
-        const name = prompt("小項目名を編集", item.name);
-        if (!name?.trim()) return;
-        item.name = name.trim();
-        await persistAndRender();
-    });
+            document.getElementById("itemDetailTitle").addEventListener("dblclick", async () => {
+                const name = prompt("小項目名を編集", item.name);
+                if (!name?.trim()) return;
+                item.name = name.trim();
+                await persistAndRender();
+            });
 
-    appContent.querySelectorAll("[data-tab]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            view.tab = btn.dataset.tab;
-            renderItemDetail();
-        });
-    });
+            appContent.querySelectorAll("[data-tab]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    view.tab = btn.dataset.tab;
+                    renderItemDetail();
+                });
+            });
 
-    if (view.tab === "roadmap") renderRoadmap(item);
-    if (view.tab === "issues") renderHistoryPanel(item, "issues", "課題コメント");
-    if (view.tab === "status") renderHistoryPanel(item, "statuses", "現状コメント");
-    if (view.tab === "stumbles") renderHistoryPanel(item, "stumbles", "躓き履歴コメント");
-}
+            if (view.tab === "roadmap") renderRoadmap(item);
+            if (view.tab === "issues") renderHistoryPanel(item, "issues", "課題コメント");
+            if (view.tab === "status") renderHistoryPanel(item, "statuses", "現状コメント");
+            if (view.tab === "stumbles") renderHistoryPanel(item, "stumbles", "躓き履歴コメント");
+        }
+
+        function phaseProgress(phase) {
+            const tasks = phase.tasks || [];
+            const total = tasks.length;
+            const done = tasks.filter((task) => task.done).length;
+            const percent = total ? Math.round((done / total) * 100) : 0;
+            return { total, done, percent };
+        }
 
         function renderRoadmap(item) {
             const tabContent = document.getElementById("tabContent");
@@ -733,25 +794,39 @@ function renderItemDetail() {
                     <button type="button" id="addPhaseBtn">フェーズを追加</button>
                 </div>
 
-                ${item.phases.length ? item.phases.map((phase, phaseIndex) => `
-                    <div class="phase" data-phase="${phaseIndex}">
-                        <div class="phase-header">
-                            <div class="phase-title" data-phase-title>${escapeHtml(phase.title)}</div>
-                            <div class="row-actions" style="margin-top:0;">
-                                <button class="secondary-btn" type="button" data-add-task="${phaseIndex}">タスク追加</button>
-                                <button class="delete-btn" type="button" data-delete-phase="${phaseIndex}">削除</button>
+                ${item.phases.length ? item.phases.map((phase, phaseIndex) => {
+                    const progress = phaseProgress(phase);
+
+                    return `
+                        <div class="phase" data-phase="${phaseIndex}">
+                            <div class="phase-header">
+                                <div class="phase-title" data-phase-title>${escapeHtml(phase.title)}</div>
+                                <div class="row-actions" style="margin-top:0;">
+                                    <button class="secondary-btn" type="button" data-add-task="${phaseIndex}">タスク追加</button>
+                                    <button class="delete-btn" type="button" data-delete-phase="${phaseIndex}">削除</button>
+                                </div>
+                            </div>
+
+                            ${(phase.tasks || []).map((task, taskIndex) => `
+                                <div class="task" data-task="${taskIndex}">
+                                    <input type="checkbox" ${task.done ? "checked" : ""} data-toggle-task="${phaseIndex}:${taskIndex}">
+                                    <div class="task-text ${task.done ? "done" : ""}" data-task-text="${phaseIndex}:${taskIndex}">${escapeHtml(task.text)}</div>
+                                    <button class="delete-btn" type="button" data-delete-task="${phaseIndex}:${taskIndex}">削除</button>
+                                </div>
+                            `).join("")}
+
+                            <div class="progress-wrap">
+                                <div class="progress-label">
+                                    <span>進捗</span>
+                                    <strong>${progress.percent}%（${progress.done}/${progress.total}）</strong>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width:${progress.percent}%;"></div>
+                                </div>
                             </div>
                         </div>
-
-                        ${(phase.tasks || []).map((task, taskIndex) => `
-                            <div class="task" data-task="${taskIndex}">
-                                <input type="checkbox" ${task.done ? "checked" : ""} data-toggle-task="${phaseIndex}:${taskIndex}">
-                                <div class="task-text ${task.done ? "done" : ""}" data-task-text="${phaseIndex}:${taskIndex}">${escapeHtml(task.text)}</div>
-                                <button class="delete-btn" type="button" data-delete-task="${phaseIndex}:${taskIndex}">削除</button>
-                            </div>
-                        `).join("")}
-                    </div>
-                `).join("") : `<div class="empty">フェーズがありません。</div>`}
+                    `;
+                }).join("") : `<div class="empty">フェーズがありません。</div>`}
             `;
 
             document.getElementById("addPhaseBtn").addEventListener("click", async () => {
@@ -819,12 +894,50 @@ function renderItemDetail() {
             });
         }
 
+        function readFileAsDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+
+                reader.onload = () => {
+                    resolve({
+                        id: uid(),
+                        name: file.name,
+                        type: file.type || "application/octet-stream",
+                        size: file.size,
+                        data: reader.result
+                    });
+                };
+
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function attachmentHtml(attachments) {
+            if (!attachments?.length) return "";
+
+            return `
+                <div class="attachments">
+                    ${attachments.map((file) => `
+                        <a
+                            class="attachment-link"
+                            href="${escapeHtml(file.data)}"
+                            download="${escapeHtml(file.name)}"
+                            target="_blank"
+                            rel="noopener"
+                        >${escapeHtml(file.name)}</a>
+                    `).join("")}
+                </div>
+            `;
+        }
+
         function renderHistoryPanel(item, key, label) {
             const tabContent = document.getElementById("tabContent");
             item[key] ||= [];
 
             tabContent.innerHTML = `
                 <textarea id="commentInput" placeholder="${label}を入力"></textarea>
+                <input class="file-input" id="fileInput" type="file" multiple>
                 <button type="button" id="addHistoryBtn">履歴に追加</button>
 
                 <div class="history">
@@ -832,6 +945,7 @@ function renderItemDetail() {
                         <article class="history-item" data-history="${index}">
                             <div class="history-date">${escapeHtml(entry.date)}</div>
                             <div class="history-text" data-history-text="${index}">${escapeHtml(entry.text)}</div>
+                            ${attachmentHtml(entry.attachments)}
                             <div class="row-actions">
                                 <button class="delete-btn" type="button" data-delete-history="${index}">削除</button>
                             </div>
@@ -842,13 +956,19 @@ function renderItemDetail() {
 
             document.getElementById("addHistoryBtn").addEventListener("click", async () => {
                 const input = document.getElementById("commentInput");
+                const fileInput = document.getElementById("fileInput");
                 const text = input.value.trim();
-                if (!text) return;
+                const files = Array.from(fileInput.files || []);
+
+                if (!text && files.length === 0) return;
+
+                const attachments = await Promise.all(files.map(readFileAsDataUrl));
 
                 item[key].unshift({
                     id: uid(),
                     date: today(),
-                    text
+                    text,
+                    attachments
                 });
 
                 await persistAndRender();
@@ -858,7 +978,7 @@ function renderItemDetail() {
                 el.addEventListener("dblclick", async () => {
                     const index = Number(el.dataset.historyText);
                     const text = prompt("コメントを編集", item[key][index].text);
-                    if (!text?.trim()) return;
+                    if (text === null) return;
                     item[key][index].text = text.trim();
                     await persistAndRender();
                 });
