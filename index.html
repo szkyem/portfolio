@@ -360,7 +360,7 @@
                 return;
             }
 
-            showPortfolioUI(user);
+            await showPortfolioUI(user);
 
             await database.ref(`loginUsers/${user.uid}`).set({
                 uid: user.uid,
@@ -375,20 +375,20 @@
             portfolioSection.classList.add("hidden");
         }
 
-        function showPortfolioUI(user) {
+        async function showPortfolioUI(user) {
             window.currentUser = user;
             userEmail.textContent = user.email || user.displayName || user.uid;
             loginSection.classList.add("hidden");
             portfolioSection.classList.remove("hidden");
-            initPortfolio();
+            await initPortfolio();
         }
 
         // Portfolio機能（window.data を直接使用）
         let curr = { category: null, project: null, item: null };
         let activeTabIndex = 0;
 
-        function initPortfolio() {
-            loadData();
+        async function initPortfolio() {
+            await loadData();
         }
 
         function escapeHtml(str) {
@@ -502,7 +502,7 @@
             window.data.categories.forEach((cat, idx) => {
                 const card = document.createElement('div');
                 card.className = 'card ' + (idx % 2 === 0 ? 'teal' : 'slate');
-                card.onclick = () => showProjects(cat.id);
+                card.onclick = () => window.showProjects(cat.id);
 
                 const total = cat.projects?.reduce((s, p) => s + p.items?.reduce((ss, i) => ss + i.phases?.reduce((sss, ph) => sss + ph.tasks?.length || 0, 0) || 0, 0) || 0, 0) || 0;
                 const done = cat.projects?.reduce((s, p) => s + p.items?.reduce((ss, i) => ss + i.phases?.reduce((sss, ph) => sss + ph.tasks?.filter(t => t.done)?.length || 0, 0) || 0, 0) || 0, 0) || 0;
@@ -588,7 +588,7 @@
             (cat.projects || []).forEach((proj, pIdx) => {
                 const card = document.createElement('div');
                 card.className = 'card teal';
-                card.onclick = () => showItems(catId, proj.id);
+                card.onclick = () => window.showItems(catId, proj.id);
 
                 let total = 0;
                 let done = 0;
@@ -689,7 +689,7 @@
             (proj.items || []).forEach((item, iIdx) => {
                 const card = document.createElement('div');
                 card.className = 'card slate';
-                card.onclick = () => showItemDetail(catId, projId, item.id);
+                card.onclick = () => window.showItemDetail(catId, projId, item.id);
 
                 const total = (item.phases || []).reduce((s, p) => s + (p.tasks || []).length, 0);
                 const done = (item.phases || []).reduce((s, p) => s + (p.tasks || []).filter(t => t.done).length, 0);
