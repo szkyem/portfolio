@@ -1039,6 +1039,21 @@ function renderCategories() {
         }
 
         window.addEventListener('popstate', goHome);
+
+        // グローバル関数を window に公開
+        window.loginWithGoogle = function() {
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            auth.signInWithPopup(provider)
+                .catch(error => {
+                    console.error('ログインエラー:', error);
+                    loginBtn.disabled = false;
+                });
+        }
+
+        window.logout = function() {
+            auth.signOut();
+        }
     </script>
 </body>
 </html>
