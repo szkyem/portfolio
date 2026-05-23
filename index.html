@@ -558,26 +558,37 @@
             bindCardEditing(data.categories, "大項目名");
         }
 
-        function renderProjects() {
-            const cat = getCategory();
-            cat.projects ||= [];
+function renderProjects() {
+    const cat = getCategory();
+    cat.projects ||= [];
 
-            mainActions.innerHTML = `<button type="button" id="addProjectBtn">中項目を追加</button>`;
-            appContent.innerHTML = cat.projects.length
-                ? `<div class="grid">${cat.projects.map((proj) => cardHtml(proj, proj.items?.length || 0, "小項目")).join("")}</div>`
-                : `<div class="empty">中項目がありません。</div>`;
+    mainActions.innerHTML = `<button type="button" id="addProjectBtn">中項目を追加</button>`;
+    appContent.innerHTML = cat.projects.length
+        ? `<div class="grid">${cat.projects.map((proj) => cardHtml(proj, proj.items?.length || 0, "小項目")).join("")}</div>`
+        : `<div class="empty">中項目がありません。</div>`;
 
-            document.getElementById("addProjectBtn").addEventListener("click", addProject);
+    document.getElementById("addProjectBtn").addEventListener("click", addProject);
 
-            appContent.querySelectorAll(".card").forEach((card) => {
-                card.addEventListener("click", () => {
-                    view.projectId = card.dataset.id;
-                    render();
-                });
-            });
+    appContent.querySelectorAll(".card").forEach((card) => {
+        card.addEventListener("click", () => {
+            view.projectId = card.dataset.id;
 
-            bindCardEditing(cat.projects, "中項目名");
-        }
+            const selectedProject = getProject();
+            const firstItem = selectedProject?.items?.[0];
+
+            if (firstItem) {
+                view.itemId = firstItem.id;
+                view.tab = "roadmap";
+            } else {
+                view.itemId = null;
+            }
+
+            render();
+        });
+    });
+
+    bindCardEditing(cat.projects, "中項目名");
+}
 
         function renderItems() {
             const proj = getProject();
