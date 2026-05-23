@@ -248,6 +248,53 @@
         </section>
 
         <section class="container hidden" id="portfolioSection" aria-live="polite">
+            <div class="error-message" id="appErrorMessage"></div>
+
+            <div class="user-info" id="userInfo">
+                <div class="user-row">
+                    <div>
+                        <p class="user-label">ログイン中</p>
+                        <p class="user-email" id="userEmail"></p>
+                    </div>
+                    <button class="logout-btn" id="logoutBtn" type="button">ログアウト</button>
+                </div>
+            </div>
+
+            <div id="portfolioContent" style="max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem;">
+                <div class="breadcrumb" id="breadcrumb">
+                    <button onclick="goHome()">ホーム</button>
+                </div>
+                <div id="storageWarning"></div>
+                
+                <div style="margin-bottom: 2rem; padding: 1rem; background: #E3F2FD; border-radius: 8px; border: 1px solid #90CAF9;">
+                    <h4 style="margin-bottom: 0.75rem; color: #1565C0;">📥 データのインポート・エクスポート</h4>
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <input type="file" id="jsonImportInput" accept=".json" style="padding: 0.5rem; border: 1px solid #90CAF9; border-radius: 4px; flex: 1; min-width: 200px;">
+                        <button onclick="importJSON()" style="background: #1976D2; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 600;">インポート</button>
+                        <button onclick="exportJSON()" style="background: #388E3C; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 600;">エクスポート</button>
+                    </div>
+                </div>
+                
+                <div id="categoriesGrid" class="grid"></div>
+                <button class="add-btn" onclick="addCategory()">+ 大項目を追加</button>
+
+                <div id="projectsView" style="display: none;">
+                    <div class="detail-view" id="projectsDetail"></div>
+                    <div id="projectsGrid" class="grid"></div>
+                    <button class="add-btn" onclick="addProject()">+ 中項目を追加</button>
+                </div>
+
+                <div id="itemsView" style="display: none;">
+                    <div class="detail-view" id="itemsDetail"></div>
+                </div>
+            </div>
+
+            <div id="fileModal" class="modal">
+                <div class="modal-content">
+                    <button class="modal-close" onclick="closeModal()">閉じる</button>
+                    <div id="filePreview"></div>
+                </div>
+            </div>
         </section>
     </main>
 
