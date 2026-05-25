@@ -30,11 +30,7 @@ button:hover{background:#1d4ed8}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
 .card{border:2px solid #e5e7eb;border-radius:8px;padding:18px;background:rgba(255,255,255,.95);cursor:pointer;min-height:110px}
 .card:hover{box-shadow:0 8px 24px rgba(15,23,42,.16);transform:translateY(-1px)}
-.card.cool-blue{border-color:#a9c7df}
-.card.cool-mint{border-color:#a9d6c3}
-.card.cool-lavender{border-color:#c7b9dc}
-.card.cool-slate{border-color:#b9c2cc}
-.card.cool-teal{border-color:#9fcfd1}
+.card.cool-blue{border-color:#a9c7df}.card.cool-mint{border-color:#a9d6c3}.card.cool-lavender{border-color:#c7b9dc}.card.cool-slate{border-color:#b9c2cc}.card.cool-teal{border-color:#9fcfd1}
 .card-title{font-size:18px;font-weight:800;margin-bottom:8px;word-break:break-word}
 .card-meta{color:#6b7280;font-size:13px}
 .card-actions{margin-top:18px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
@@ -103,12 +99,7 @@ details[open] .timeline-arrow{transform:rotate(180deg)}
 .modal-content img,.modal-content video{max-width:100%;display:block;margin:auto}
 .modal-content iframe{width:100%;height:70vh;border:1px solid #e5e7eb}
 .modal-content pre{white-space:pre-wrap;word-break:break-word;background:#f9fafb;padding:14px;border-radius:8px}
-@media(max-width:640px){
-.app-header{height:auto;padding:18px;align-items:stretch;flex-direction:column}
-.app-body{padding:18px}
-.logout-btn{width:100%}
-.link-inputs{grid-template-columns:1fr}
-}
+@media(max-width:640px){.app-header{height:auto;padding:18px;align-items:stretch;flex-direction:column}.app-body{padding:18px}.logout-btn{width:100%}.link-inputs{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -398,16 +389,7 @@ document.getElementById("addProjectBtn").addEventListener("click",addProject);
 appContent.querySelectorAll(".card").forEach((card)=>{
 card.addEventListener("click",()=>{
 view.projectId=card.dataset.id;
-
-const firstItem=getProject()?.items?.[0];
-
-if(firstItem){
-view.itemId=firstItem.id;
-view.tab="roadmap";
-}else{
 view.itemId=null;
-}
-
 render();
 });
 });
@@ -480,6 +462,10 @@ if(index>=0){
 list.splice(index,1);
 }
 
+if(view.itemId===btn.dataset.delete){
+view.itemId=null;
+}
+
 await persistAndRender();
 });
 });
@@ -538,7 +524,10 @@ function renderItemDetail(){
 const item=getItem();
 ensureItemShape(item);
 
-mainActions.innerHTML="";
+mainActions.innerHTML=`
+<button class="secondary-btn" type="button" id="showItemsBtn">小項目一覧</button>
+<button type="button" id="addItemFromDetailBtn">小項目を追加</button>
+`;
 
 appContent.innerHTML=`
 <section class="detail">
@@ -551,6 +540,13 @@ appContent.innerHTML=`
 <div id="tabContent"></div>
 </section>
 `;
+
+document.getElementById("showItemsBtn").addEventListener("click",()=>{
+view.itemId=null;
+render();
+});
+
+document.getElementById("addItemFromDetailBtn").addEventListener("click",addItem);
 
 document.getElementById("itemDetailTitle").addEventListener("dblclick",async()=>{
 const name=prompt("小項目名を編集",item.name);
