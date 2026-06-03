@@ -94,6 +94,9 @@ details[open] .timeline-arrow{transform:rotate(180deg)}
 .link-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .top-progress,.published-group{border:1px solid #e5e7eb;border-radius:8px;padding:20px;background:rgba(255,255,255,.96);margin-bottom:24px}
 .top-progress h2,.published-group h2{font-size:18px;margin-bottom:14px}
+.publication-category-group{border:1px solid #e5e7eb;border-radius:8px;background:#f8fafc;padding:16px;margin-top:14px}
+.publication-category-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.publication-category-head h3{font-size:17px;margin:0}
 .progress-table{display:grid;gap:0}
 .progress-row{display:grid;grid-template-columns:120px 170px 90px 1fr 105px 90px;gap:12px;align-items:center;min-height:44px;border-bottom:1px solid #edf2f7;font-size:13px}
 .progress-row.header{font-weight:800;color:#475569;border-bottom:1px solid #dbe3ef}
@@ -621,7 +624,7 @@ return`
 <h2>公開</h2>
 <span class="card-meta">公開ボタンを押した完了項目だけ表示</span>
 </div>
-${entries.length?`<div class="publication-grid">${entries.map((entry)=>publicationCardHtml(entry)).join("")}</div>`:`<div class="empty">公開中の項目がありません。完了項目から公開ボタンを押してください。</div>`}
+${entries.length?categoryGroupedPublicationHtml(entries,publicationCardHtml,"公開中"):`<div class="empty">公開中の項目がありません。完了項目から公開ボタンを押してください。</div>`}
 </section>
 `;
 }
@@ -635,9 +638,36 @@ return`
 <h2>完了</h2>
 <span class="card-meta">開発完了した大項目・中項目</span>
 </div>
-${entries.length?`<div class="publication-grid">${entries.map((entry)=>completedCardHtml(entry)).join("")}</div>`:`<div class="empty">完了した項目がありません。</div>`}
+${entries.length?categoryGroupedPublicationHtml(entries,completedCardHtml,"完了"):`<div class="empty">完了した項目がありません。</div>`}
 </section>
 `;
+}
+
+function categoryGroupedPublicationHtml(entries,cardRenderer,label){
+const groups=[];
+const byCategory=new Map();
+
+entries.forEach((entry)=>{
+const categoryId=entry.cat?.id||"uncategorized";
+if(!byCategory.has(categoryId)){
+const group={cat:entry.cat,entries:[]};
+byCategory.set(categoryId,group);
+groups.push(group);
+}
+byCategory.get(categoryId).entries.push(entry);
+});
+
+return groups.map((group)=>`
+<section class="publication-category-group">
+<div class="publication-category-head">
+<h3>${escapeHtml(group.cat?.name||"未分類")}</h3>
+<span class="card-meta">${group.entries.length} ${label}</span>
+</div>
+<div class="publication-grid">
+${group.entries.map((entry)=>cardRenderer(entry)).join("")}
+</div>
+</section>
+`).join("");
 }
 
 function publicationCardHtml(entry){
