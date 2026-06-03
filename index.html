@@ -286,6 +286,7 @@ text:"既存indexと同じ大項目→中項目→小項目の操作を保持。
 meta:"既存の階層管理"
 };
 data.publications||={};
+data.dailySummaries||=[];
 }
 
 function publicationKey(type,id){
@@ -466,7 +467,7 @@ ${homeRouteCardHtml("development")}
 
 document.getElementById("addCategoryBtn").addEventListener("click",addCategory);
 bindHomeRouteActions();
-bindProgressEditButtons();
+bindDailySummaryActions();
 }
 
 function homeRouteCardHtml(key){
@@ -525,7 +526,7 @@ ${data.categories.filter((cat)=>!isCompleted(cat)).length
 `;
 
 document.getElementById("addCategoryBtn").addEventListener("click",addCategory);
-bindProgressEditButtons();
+bindDailySummaryActions();
 
 appContent.querySelectorAll(".card").forEach((card)=>{
 card.addEventListener("click",()=>{
@@ -861,45 +862,74 @@ return entries.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))|
 }
 
 function progressLogHtml(limit=4){
-const entries=collectStatusEntries().slice(0,limit);
+const entries=(data.dailySummaries||[])
+.slice()
+.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))||String(b.id||"").localeCompare(String(a.id||"")))
+.slice(0,limit);
 
 return`
 <section class="top-progress">
-<h2>進捗ログ</h2>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+<h2 style="margin-bottom:0;">本日のアウトプット</h2>
+<button type="button" id="addDailySummaryBtn">AI要約を追加</button>
+</div>
 ${entries.length?`
 <div class="progress-table">
 <div class="progress-row header">
-<div>日付</div><div>プロジェクト</div><div>種別</div><div>内容</div><div>状態</div><div>編集</div>
+<div>日付</div><div>タイトル</div><div>種別</div><div>要約</div><div>出力</div><div>編集</div>
 </div>
 ${entries.map((entry)=>`
 <div class="progress-row">
 <div>${escapeHtml(entry.date||"")}</div>
-<div>${escapeHtml(entry.itemName)}</div>
-<div>${entry.type==="stumble"?"躓き":"進捗"}</div>
-<div>${escapeHtml(entry.title||entry.text||"")}</div>
-<div><span class="status-pill ${entry.type==="stumble"?"stumble":"progress"}">${entry.type==="stumble"?"要確認":"作業中"}</span></div>
-<div><button class="edit-btn" type="button" data-edit-progress-item="${escapeHtml(entry.itemId)}">編集</button></div>
+<div>${escapeHtml(entry.title||"本日のまとめ")}</div>
+<div>AI要約</div>
+<div>${escapeHtml(entry.summary||"")}</div>
+<div><span class="status-pill progress">${escapeHtml(entry.output||"記録")}</span></div>
+<div><button class="edit-btn" type="button" data-edit-daily-summary="${escapeHtml(entry.id)}">編集</button></div>
 </div>
 `).join("")}
 </div>
-`:`<div class="empty">進捗ログがありません。</div>`}
+`:`<div class="empty">本日のアウトプットがありません。AI要約を追加してください。</div>`}
 </section>
 `;
 }
 
-function bindProgressEditButtons(){
-appContent.querySelectorAll("[data-edit-progress-item]").forEach((btn)=>{
-btn.addEventListener("click",()=>{
-const found=findItemById(btn.dataset.editProgressItem);
-if(!found)return;
-view.section="development";
-view.categoryId=found.cat.id;
-view.projectId=found.proj.id;
-view.itemId=found.item.id;
-view.tab="status";
-render();
+function bindDailySummaryActions(){
+document.getElementById("addDailySummaryBtn")?.addEventListener("click",()=>editDailySummary());
+
+appContent.querySelectorAll("[data-edit-daily-summary]").forEach((btn)=>{
+btn.addEventListener("click",()=>editDailySummary(btn.dataset.editDailySummary));
 });
+}
+
+async function editDailySummary(summaryId=null){
+data.dailySummaries||=[];
+const existing=data.dailySummaries.find((entry)=>entry.id===summaryId);
+
+const title=prompt("タイトル",existing?.title||"本日のまとめ");
+if(title===null)return;
+const summary=prompt("AI要約 / 本日やったこと",existing?.summary||"");
+if(summary===null)return;
+const output=prompt("最終アウトプット",existing?.output||"記録");
+if(output===null)return;
+
+if(existing){
+existing.title=title.trim()||existing.title;
+existing.summary=summary.trim();
+existing.output=output.trim()||"記録";
+existing.updatedAt=Date.now();
+}else{
+data.dailySummaries.unshift({
+id:uid(),
+date:today(),
+title:title.trim()||"本日のまとめ",
+summary:summary.trim(),
+output:output.trim()||"記録",
+createdAt:Date.now()
 });
+}
+
+await persistAndRender();
 }
 
 function renderProjects(){
