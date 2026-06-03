@@ -117,7 +117,8 @@ details[open] .timeline-arrow{transform:rotate(180deg)}
 .publication-card{border:1px solid #e5e7eb;border-radius:8px;padding:14px;background:#fff;width:100%;aspect-ratio:1/1;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer}
 .publication-card:hover{box-shadow:0 8px 24px rgba(15,23,42,.12);transform:translateY(-1px)}
 .publication-head{display:flex;gap:12px;align-items:flex-start}
-.publication-icon{width:42px;height:42px;border-radius:0;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto}
+.publication-icon{width:42px;height:42px;border-radius:0;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto;cursor:pointer}
+.publication-icon:hover{filter:brightness(.92)}
 .publication-title{font-size:16px;font-weight:800;margin-bottom:8px;word-break:break-word}
 .publication-text{font-size:13px;color:#64748b;line-height:1.55;white-space:pre-wrap}
 .publication-meta{font-size:13px;font-weight:800;color:#2563eb;margin-top:10px}
@@ -583,6 +584,14 @@ await persistAndRender();
 });
 });
 
+appContent.querySelectorAll("[data-show-overview]").forEach((target)=>{
+target.addEventListener("click",(event)=>{
+if(event.target.closest("button"))return;
+event.stopPropagation();
+showPublicationOverview(target.dataset.showOverview);
+});
+});
+
 document.getElementById("cancelPublicationEdit")?.addEventListener("click",()=>{
 view.publicationEditId=null;
 render();
@@ -605,7 +614,7 @@ return`
 <section class="publication-edit-form">
 <h2>公開カードを編集</h2>
 <input class="input" id="publicationTitleInput" type="text" value="${escapeHtml(current.title||found.title)}" placeholder="公開カード名">
-<textarea class="input" id="publicationDescriptionInput" placeholder="補足">${escapeHtml(current.description||found.description)}</textarea>
+<textarea class="input" id="publicationDescriptionInput" placeholder="概要">${escapeHtml(current.description||found.description)}</textarea>
 <input class="input" id="publicationUrlInput" type="url" value="${escapeHtml(current.url||"")}" placeholder="https://example.com">
 <div class="row-actions">
 <button type="button" id="savePublicationEdit">保存</button>
@@ -701,16 +710,17 @@ function completedCardHtml(entry){
 const key=publicationKey(entry.type,entry.id);
 const publication=data.publications[key]||{};
 const title=publication.title||entry.title;
+const description=publication.description||entry.description;
 const iconText=String(title).trim().slice(0,1)||"完";
 
 return`
-<article class="publication-card">
+<article class="publication-card" data-show-overview="${escapeHtml(key)}">
 <div>
 <div class="publication-head">
-<div class="publication-icon">${escapeHtml(iconText)}</div>
+<div class="publication-icon" data-show-overview="${escapeHtml(key)}">${escapeHtml(iconText)}</div>
 <div>
 <div class="publication-title">${escapeHtml(title)}</div>
-<div class="publication-text">${escapeHtml(entry.description)}</div>
+<div class="publication-text">${escapeHtml(description)}</div>
 <div class="publication-meta">${publication.published?"公開にも表示中":"未公開"}</div>
 </div>
 </div>
@@ -797,6 +807,23 @@ window.open(url,"_blank","noopener");
 
 function findCompletedEntryByKey(key){
 return completedEntries().find((entry)=>publicationKey(entry.type,entry.id)===key);
+}
+
+function showPublicationOverview(key){
+const found=findCompletedEntryByKey(key);
+if(!found)return;
+
+const publication=data.publications[key]||{};
+const title=publication.title||found.title;
+const description=publication.description||found.description||"概要が未入力です。編集ボタンから概要を登録してください。";
+const url=publication.url||"";
+
+previewTitle.textContent=title;
+previewContent.innerHTML=`
+<div class="history-text">${escapeHtml(description)}</div>
+${url?`<div class="row-actions"><a href="${escapeHtml(url)}" target="_blank" rel="noopener">登録URLを開く</a></div>`:""}
+`;
+previewModal.classList.add("show");
 }
 
 function findItemById(itemId){
