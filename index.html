@@ -103,6 +103,7 @@ details[open] .timeline-arrow{transform:rotate(180deg)}
 .status-pill.stumble{background:#fef3c7;color:#92400e}
 .home-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .route-card{border:2px solid #e5e7eb;border-radius:8px;padding:20px;background:rgba(255,255,255,.95);min-height:150px;display:flex;flex-direction:column;justify-content:space-between}
+.route-card{cursor:pointer}
 .route-card-title{font-size:18px;font-weight:800;margin-bottom:10px;word-break:break-word}
 .route-card-text{font-size:13px;color:#475569;line-height:1.65;white-space:pre-wrap}
 .route-card-meta{font-size:13px;font-weight:800;color:#2563eb;margin-top:12px}
@@ -112,10 +113,14 @@ details[open] .timeline-arrow{transform:rotate(180deg)}
 .publication-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
 .publication-card{border:1px solid #e5e7eb;border-radius:8px;padding:16px;background:#fff;min-height:130px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer}
 .publication-card:hover{box-shadow:0 8px 24px rgba(15,23,42,.12);transform:translateY(-1px)}
+.publication-head{display:flex;gap:12px;align-items:flex-start}
+.publication-icon{width:42px;height:42px;border-radius:0;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto}
 .publication-title{font-size:16px;font-weight:800;margin-bottom:8px;word-break:break-word}
 .publication-text{font-size:13px;color:#64748b;line-height:1.55;white-space:pre-wrap}
 .publication-meta{font-size:13px;font-weight:800;color:#2563eb;margin-top:10px}
 .publication-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:14px}
+.publication-edit-form{border:1px solid #dbe4f0;border-radius:8px;background:#fff;padding:16px;margin-bottom:18px}
+.publication-edit-form h2{font-size:18px;margin-bottom:12px}
 .modal{position:fixed;inset:0;background:rgba(15,23,42,.62);display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
 .modal.show{display:flex}
 .modal-box{background:#fff;border-radius:10px;width:min(100%,960px);max-height:90vh;overflow:auto;padding:18px}
@@ -438,22 +443,22 @@ return`
 </div>
 <div class="route-card-actions">
 <button class="edit-btn" type="button" data-edit-home-card="${key}">編集</button>
-<button class="open-btn" type="button" data-open-section="${key}">開く</button>
 </div>
 </article>
 `;
 }
 
 function bindHomeRouteActions(){
-appContent.querySelectorAll("[data-open-section]").forEach((btn)=>{
-btn.addEventListener("click",()=>{
-view={section:btn.dataset.openSection,categoryId:null,projectId:null,itemId:null,tab:"roadmap"};
+appContent.querySelectorAll("[data-route-card]").forEach((card)=>{
+card.addEventListener("click",()=>{
+view={section:card.dataset.routeCard,categoryId:null,projectId:null,itemId:null,tab:"roadmap"};
 render();
 });
 });
 
 appContent.querySelectorAll("[data-edit-home-card]").forEach((btn)=>{
-btn.addEventListener("click",async()=>{
+btn.addEventListener("click",async(event)=>{
+event.stopPropagation();
 const key=btn.dataset.editHomeCard;
 const card=data.homeCards[key];
 const title=prompt("タイトルを編集",card.title);
@@ -498,7 +503,7 @@ function renderPublished(){
 mainActions.innerHTML="";
 
 appContent.innerHTML=data.categories.length
-?data.categories.map((cat)=>publishedGroupHtml(cat)).join("")
+?`${publicationEditorHtml()}${data.categories.map((cat)=>publishedGroupHtml(cat)).join("")}`
 :`<div class="empty">大項目がありません。</div>`;
 
 appContent.querySelectorAll("[data-open-publication]").forEach((card)=>{
@@ -518,9 +523,41 @@ openPublication(btn.dataset.publicationOpenBtn);
 appContent.querySelectorAll("[data-edit-publication]").forEach((btn)=>{
 btn.addEventListener("click",async(event)=>{
 event.stopPropagation();
-await editPublication(btn.dataset.editPublication);
+view.publicationEditId=btn.dataset.editPublication;
+render();
 });
 });
+
+document.getElementById("cancelPublicationEdit")?.addEventListener("click",()=>{
+view.publicationEditId=null;
+render();
+});
+
+document.getElementById("savePublicationEdit")?.addEventListener("click",async()=>{
+await savePublicationEdit();
+});
+}
+
+function publicationEditorHtml(){
+if(!view.publicationEditId)return"";
+
+const found=findItemById(view.publicationEditId);
+if(!found)return"";
+
+const current=data.publications[view.publicationEditId]||{};
+
+return`
+<section class="publication-edit-form">
+<h2>公開カードを編集</h2>
+<input class="input" id="publicationTitleInput" type="text" value="${escapeHtml(current.title||found.item.name)}" placeholder="公開カード名">
+<textarea class="input" id="publicationDescriptionInput" placeholder="補足">${escapeHtml(current.description||`${found.cat.name} / ${found.proj.name}`)}</textarea>
+<input class="input" id="publicationUrlInput" type="url" value="${escapeHtml(current.url||"")}" placeholder="https://example.com">
+<div class="row-actions">
+<button type="button" id="savePublicationEdit">保存</button>
+<button class="secondary-btn" type="button" id="cancelPublicationEdit">キャンセル</button>
+</div>
+</section>
+`;
 }
 
 function publishedGroupHtml(cat){
@@ -554,33 +591,36 @@ const publication=data.publications[item.id]||{};
 const title=publication.title||item.name;
 const description=publication.description||`${cat.name} / ${proj.name}`;
 const hasUrl=Boolean(publication.url);
+const iconText=String(title||item.name).trim().slice(0,1)||"項";
 
 return`
 <article class="publication-card" data-open-publication="${escapeHtml(item.id)}">
+<div>
+<div class="publication-head">
+<div class="publication-icon">${escapeHtml(iconText)}</div>
 <div>
 <div class="publication-title">${escapeHtml(title)}</div>
 <div class="publication-text">${escapeHtml(description)}</div>
 <div class="publication-meta">${hasUrl?"URL登録済み":"URL未設定"}</div>
 </div>
+</div>
+</div>
 <div class="publication-actions">
 <button class="edit-btn" type="button" data-edit-publication="${escapeHtml(item.id)}">編集</button>
-<button class="open-btn" type="button" data-publication-open-btn="${escapeHtml(item.id)}">開く</button>
 </div>
 </article>
 `;
 }
 
-async function editPublication(itemId){
+async function savePublicationEdit(){
+const itemId=view.publicationEditId;
 const found=findItemById(itemId);
 if(!found)return;
 
 const current=data.publications[itemId]||{};
-const title=prompt("公開カード名を編集",current.title||found.item.name);
-if(title===null)return;
-const description=prompt("補足を編集",current.description||`${found.cat.name} / ${found.proj.name}`);
-if(description===null)return;
-const url=prompt("開くURLを入力",current.url||"");
-if(url===null)return;
+const title=document.getElementById("publicationTitleInput")?.value.trim()||found.item.name;
+const description=document.getElementById("publicationDescriptionInput")?.value.trim()||"";
+const url=document.getElementById("publicationUrlInput")?.value.trim()||"";
 
 data.publications[itemId]={
 ...current,
@@ -589,11 +629,12 @@ categoryId:found.cat.id,
 projectId:found.proj.id,
 itemId,
 title:title.trim()||found.item.name,
-description:description.trim(),
-url:url.trim(),
+description,
+url,
 updatedAt:Date.now()
 };
 
+view.publicationEditId=null;
 await persistAndRender();
 }
 
