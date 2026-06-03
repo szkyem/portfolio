@@ -110,8 +110,8 @@ details[open] .timeline-arrow{transform:rotate(180deg)}
 .route-card-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:14px}
 .open-btn{background:#dcfce7;color:#166534;padding:7px 10px;font-size:13px}
 .open-btn:hover{background:#bbf7d0}
-.publication-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.publication-card{border:1px solid #e5e7eb;border-radius:8px;padding:16px;background:#fff;min-height:130px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer}
+.publication-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,180px));gap:14px;align-items:start}
+.publication-card{border:1px solid #e5e7eb;border-radius:8px;padding:14px;background:#fff;width:100%;aspect-ratio:1/1;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer}
 .publication-card:hover{box-shadow:0 8px 24px rgba(15,23,42,.12);transform:translateY(-1px)}
 .publication-head{display:flex;gap:12px;align-items:flex-start}
 .publication-icon{width:42px;height:42px;border-radius:0;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto}
@@ -121,6 +121,10 @@ details[open] .timeline-arrow{transform:rotate(180deg)}
 .publication-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:14px}
 .publication-edit-form{border:1px solid #dbe4f0;border-radius:8px;background:#fff;padding:16px;margin-bottom:18px}
 .publication-edit-form h2{font-size:18px;margin-bottom:12px}
+.complete-btn{background:#dcfce7;color:#166534;padding:7px 10px;font-size:13px}
+.complete-btn:hover{background:#bbf7d0}
+.publish-btn{background:#fef3c7;color:#92400e;padding:7px 10px;font-size:13px}
+.publish-btn:hover{background:#fde68a}
 .modal{position:fixed;inset:0;background:rgba(15,23,42,.62);display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
 .modal.show{display:flex}
 .modal-box{background:#fff;border-radius:10px;width:min(100%,960px);max-height:90vh;overflow:auto;padding:18px}
@@ -278,6 +282,36 @@ text:"既存indexと同じ大項目→中項目→小項目の操作を保持。
 meta:"既存の階層管理"
 };
 data.publications||={};
+}
+
+function publicationKey(type,id){
+return`${type}:${id}`;
+}
+
+function isCompleted(entry){
+return Boolean(entry?.completed);
+}
+
+function completedEntries(){
+const results=[];
+
+(data.categories||[]).forEach((cat)=>{
+if(isCompleted(cat)){
+results.push({type:"category",id:cat.id,title:cat.name,description:"大項目",cat});
+}
+
+(cat.projects||[]).forEach((proj)=>{
+if(isCompleted(proj)){
+results.push({type:"project",id:proj.id,title:proj.name,description:`${cat.name} / 中項目`,cat,proj});
+}
+});
+});
+
+return results;
+}
+
+function publishedEntries(){
+return completedEntries().filter((entry)=>data.publications[publicationKey(entry.type,entry.id)]?.published);
 }
 
 async function ensureCardColors(){
@@ -481,8 +515,8 @@ mainActions.innerHTML=`<button type="button" id="addCategoryBtn">大項目を追
 
 appContent.innerHTML=`
 ${progressLogHtml(4)}
-${data.categories.length
-?`<div class="grid">${data.categories.map((cat)=>cardHtml(cat,cat.projects?.length||0,"中項目",true)).join("")}</div>`
+${data.categories.filter((cat)=>!isCompleted(cat)).length
+?`<div class="grid">${data.categories.filter((cat)=>!isCompleted(cat)).map((cat)=>cardHtml(cat,(cat.projects||[]).filter((proj)=>!isCompleted(proj)).length,"中項目",true,true)).join("")}</div>`
 :`<div class="empty">大項目がありません。</div>`}
 `;
 
@@ -502,9 +536,11 @@ bindCardActions(data.categories,"大項目名");
 function renderPublished(){
 mainActions.innerHTML="";
 
-appContent.innerHTML=data.categories.length
-?`${publicationEditorHtml()}${data.categories.map((cat)=>publishedGroupHtml(cat)).join("")}`
-:`<div class="empty">大項目がありません。</div>`;
+appContent.innerHTML=`
+${publicationEditorHtml()}
+${publishedSectionHtml()}
+${completedSectionHtml()}
+`;
 
 appContent.querySelectorAll("[data-open-publication]").forEach((card)=>{
 card.addEventListener("click",(event)=>{
@@ -528,6 +564,22 @@ render();
 });
 });
 
+appContent.querySelectorAll("[data-publish-completed]").forEach((btn)=>{
+btn.addEventListener("click",async(event)=>{
+event.stopPropagation();
+publishCompletedEntry(btn.dataset.publishCompleted);
+await persistAndRender();
+});
+});
+
+appContent.querySelectorAll("[data-restore-completed]").forEach((btn)=>{
+btn.addEventListener("click",async(event)=>{
+event.stopPropagation();
+restoreCompletedEntry(btn.dataset.restoreCompleted);
+await persistAndRender();
+});
+});
+
 document.getElementById("cancelPublicationEdit")?.addEventListener("click",()=>{
 view.publicationEditId=null;
 render();
@@ -541,7 +593,7 @@ await savePublicationEdit();
 function publicationEditorHtml(){
 if(!view.publicationEditId)return"";
 
-const found=findItemById(view.publicationEditId);
+const found=findCompletedEntryByKey(view.publicationEditId);
 if(!found)return"";
 
 const current=data.publications[view.publicationEditId]||{};
@@ -549,8 +601,8 @@ const current=data.publications[view.publicationEditId]||{};
 return`
 <section class="publication-edit-form">
 <h2>公開カードを編集</h2>
-<input class="input" id="publicationTitleInput" type="text" value="${escapeHtml(current.title||found.item.name)}" placeholder="公開カード名">
-<textarea class="input" id="publicationDescriptionInput" placeholder="補足">${escapeHtml(current.description||`${found.cat.name} / ${found.proj.name}`)}</textarea>
+<input class="input" id="publicationTitleInput" type="text" value="${escapeHtml(current.title||found.title)}" placeholder="公開カード名">
+<textarea class="input" id="publicationDescriptionInput" placeholder="補足">${escapeHtml(current.description||found.description)}</textarea>
 <input class="input" id="publicationUrlInput" type="url" value="${escapeHtml(current.url||"")}" placeholder="https://example.com">
 <div class="row-actions">
 <button type="button" id="savePublicationEdit">保存</button>
@@ -560,41 +612,44 @@ return`
 `;
 }
 
-function publishedGroupHtml(cat){
-const items=itemsForCategory(cat);
+function publishedSectionHtml(){
+const entries=publishedEntries();
 
 return`
 <section class="published-group">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
-<h2>${escapeHtml(cat.name)}</h2>
-<span class="card-meta">大項目ごとに公開リンクを分類</span>
+<h2>公開</h2>
+<span class="card-meta">公開ボタンを押した完了項目だけ表示</span>
 </div>
-${items.length?`<div class="publication-grid">${items.map((entry)=>publicationCardHtml(entry)).join("")}</div>`:`<div class="empty">公開・完了に登録できる小項目がありません。</div>`}
+${entries.length?`<div class="publication-grid">${entries.map((entry)=>publicationCardHtml(entry)).join("")}</div>`:`<div class="empty">公開中の項目がありません。完了項目から公開ボタンを押してください。</div>`}
 </section>
 `;
 }
 
-function itemsForCategory(cat){
-const results=[];
-
-(cat.projects||[]).forEach((proj)=>{
-(proj.items||[]).forEach((item)=>{
-results.push({cat,proj,item});
-});
-});
-
-return results;
-}
-
-function publicationCardHtml({cat,proj,item}){
-const publication=data.publications[item.id]||{};
-const title=publication.title||item.name;
-const description=publication.description||`${cat.name} / ${proj.name}`;
-const hasUrl=Boolean(publication.url);
-const iconText=String(title||item.name).trim().slice(0,1)||"項";
+function completedSectionHtml(){
+const entries=completedEntries();
 
 return`
-<article class="publication-card" data-open-publication="${escapeHtml(item.id)}">
+<section class="published-group">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+<h2>完了</h2>
+<span class="card-meta">開発完了した大項目・中項目</span>
+</div>
+${entries.length?`<div class="publication-grid">${entries.map((entry)=>completedCardHtml(entry)).join("")}</div>`:`<div class="empty">完了した項目がありません。</div>`}
+</section>
+`;
+}
+
+function publicationCardHtml(entry){
+const key=publicationKey(entry.type,entry.id);
+const publication=data.publications[key]||{};
+const title=publication.title||entry.title;
+const description=publication.description||entry.description;
+const hasUrl=Boolean(publication.url);
+const iconText=String(title||entry.title).trim().slice(0,1)||"項";
+
+return`
+<article class="publication-card" data-open-publication="${escapeHtml(key)}">
 <div>
 <div class="publication-head">
 <div class="publication-icon">${escapeHtml(iconText)}</div>
@@ -606,29 +661,90 @@ return`
 </div>
 </div>
 <div class="publication-actions">
-<button class="edit-btn" type="button" data-edit-publication="${escapeHtml(item.id)}">編集</button>
+<button class="edit-btn" type="button" data-edit-publication="${escapeHtml(key)}">編集</button>
 </div>
 </article>
 `;
 }
 
-async function savePublicationEdit(){
-const itemId=view.publicationEditId;
-const found=findItemById(itemId);
+function completedCardHtml(entry){
+const key=publicationKey(entry.type,entry.id);
+const publication=data.publications[key]||{};
+const title=publication.title||entry.title;
+const iconText=String(title).trim().slice(0,1)||"完";
+
+return`
+<article class="publication-card">
+<div>
+<div class="publication-head">
+<div class="publication-icon">${escapeHtml(iconText)}</div>
+<div>
+<div class="publication-title">${escapeHtml(title)}</div>
+<div class="publication-text">${escapeHtml(entry.description)}</div>
+<div class="publication-meta">${publication.published?"公開にも表示中":"未公開"}</div>
+</div>
+</div>
+</div>
+<div class="publication-actions">
+<button class="publish-btn" type="button" data-publish-completed="${escapeHtml(key)}">公開</button>
+<button class="secondary-btn" type="button" data-restore-completed="${escapeHtml(key)}">開発中へ戻す</button>
+<button class="edit-btn" type="button" data-edit-publication="${escapeHtml(key)}">編集</button>
+</div>
+</article>
+`;
+}
+
+function publishCompletedEntry(key){
+const found=findCompletedEntryByKey(key);
 if(!found)return;
 
-const current=data.publications[itemId]||{};
-const title=document.getElementById("publicationTitleInput")?.value.trim()||found.item.name;
+const current=data.publications[key]||{};
+data.publications[key]={
+...current,
+key,
+type:found.type,
+sourceId:found.id,
+title:current.title||found.title,
+description:current.description||found.description,
+url:current.url||"",
+published:true,
+updatedAt:Date.now()
+};
+}
+
+function restoreCompletedEntry(key){
+const found=findCompletedEntryByKey(key);
+if(!found)return;
+
+if(!confirm(`「${found.title}」を開発中へ戻しますか？`))return;
+
+if(found.type==="category"){
+found.cat.completed=false;
+found.cat.completedAt=null;
+}
+
+if(found.type==="project"){
+found.proj.completed=false;
+found.proj.completedAt=null;
+}
+}
+
+async function savePublicationEdit(){
+const key=view.publicationEditId;
+const found=findCompletedEntryByKey(key);
+if(!found)return;
+
+const current=data.publications[key]||{};
+const title=document.getElementById("publicationTitleInput")?.value.trim()||found.title;
 const description=document.getElementById("publicationDescriptionInput")?.value.trim()||"";
 const url=document.getElementById("publicationUrlInput")?.value.trim()||"";
 
-data.publications[itemId]={
+data.publications[key]={
 ...current,
-id:itemId,
-categoryId:found.cat.id,
-projectId:found.proj.id,
-itemId,
-title:title.trim()||found.item.name,
+key,
+type:found.type,
+sourceId:found.id,
+title:title.trim()||found.title,
 description,
 url,
 updatedAt:Date.now()
@@ -638,8 +754,8 @@ view.publicationEditId=null;
 await persistAndRender();
 }
 
-function openPublication(itemId){
-const url=data.publications[itemId]?.url;
+function openPublication(key){
+const url=data.publications[key]?.url;
 
 if(!url){
 alert("URLが未設定です。編集ボタンからURLを登録してください。");
@@ -647,6 +763,10 @@ return;
 }
 
 window.open(url,"_blank","noopener");
+}
+
+function findCompletedEntryByKey(key){
+return completedEntries().find((entry)=>publicationKey(entry.type,entry.id)===key);
 }
 
 function findItemById(itemId){
@@ -728,11 +848,12 @@ render();
 function renderProjects(){
 const cat=getCategory();
 cat.projects||=[];
+const activeProjects=cat.projects.filter((proj)=>!isCompleted(proj));
 
 mainActions.innerHTML=`<button type="button" id="addProjectBtn">中項目を追加</button>`;
 
-appContent.innerHTML=cat.projects.length
-?`<div class="grid">${cat.projects.map((proj)=>cardHtml(proj,proj.items?.length||0,"小項目",true)).join("")}</div>`
+appContent.innerHTML=activeProjects.length
+?`<div class="grid">${activeProjects.map((proj)=>cardHtml(proj,proj.items?.length||0,"小項目",true,true)).join("")}</div>`
 :`<div class="empty">中項目がありません。</div>`;
 
 document.getElementById("addProjectBtn").addEventListener("click",addProject);
@@ -771,7 +892,7 @@ render();
 bindCardActions(proj.items,"小項目名");
 }
 
-function cardHtml(entity,count,label,useRandomBorder=false){
+function cardHtml(entity,count,label,useRandomBorder=false,canComplete=false){
 const colorClass=useRandomBorder?(entity.cardColor||""):"";
 
 return`
@@ -779,6 +900,7 @@ return`
 <div class="card-title">${escapeHtml(entity.name)}</div>
 <div class="card-meta">${count} ${label}</div>
 <div class="card-actions">
+${canComplete?`<button class="complete-btn" type="button" data-complete="${entity.id}">開発完了</button>`:""}
 <button class="edit-btn" type="button" data-edit="${entity.id}">編集</button>
 <button class="delete-btn" type="button" data-delete="${entity.id}">削除</button>
 </div>
@@ -817,6 +939,21 @@ if(view.itemId===btn.dataset.delete){
 view.itemId=null;
 }
 
+await persistAndRender();
+});
+});
+
+appContent.querySelectorAll("[data-complete]").forEach((btn)=>{
+btn.addEventListener("click",async(event)=>{
+event.stopPropagation();
+
+const target=list.find((entry)=>entry.id===btn.dataset.complete);
+if(!target)return;
+
+if(!confirm(`「${target.name}」を開発完了にしますか？`))return;
+
+target.completed=true;
+target.completedAt=Date.now();
 await persistAndRender();
 });
 });
