@@ -92,6 +92,30 @@ details[open] .timeline-arrow{transform:rotate(180deg)}
 .attachment-actions{margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .attachment-actions a,.link-card a{color:#2563eb;text-decoration:none;font-weight:700}
 .link-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.top-progress,.published-group{border:1px solid #e5e7eb;border-radius:8px;padding:20px;background:rgba(255,255,255,.96);margin-bottom:24px}
+.top-progress h2,.published-group h2{font-size:18px;margin-bottom:14px}
+.progress-table{display:grid;gap:0}
+.progress-row{display:grid;grid-template-columns:120px 170px 90px 1fr 105px 90px;gap:12px;align-items:center;min-height:44px;border-bottom:1px solid #edf2f7;font-size:13px}
+.progress-row.header{font-weight:800;color:#475569;border-bottom:1px solid #dbe3ef}
+.progress-row:last-child{border-bottom:0}
+.status-pill{display:inline-flex;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;white-space:nowrap}
+.status-pill.progress{background:#dcfce7;color:#166534}
+.status-pill.stumble{background:#fef3c7;color:#92400e}
+.home-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.route-card{border:2px solid #e5e7eb;border-radius:8px;padding:20px;background:rgba(255,255,255,.95);min-height:150px;display:flex;flex-direction:column;justify-content:space-between}
+.route-card-title{font-size:18px;font-weight:800;margin-bottom:10px;word-break:break-word}
+.route-card-text{font-size:13px;color:#475569;line-height:1.65;white-space:pre-wrap}
+.route-card-meta{font-size:13px;font-weight:800;color:#2563eb;margin-top:12px}
+.route-card-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:14px}
+.open-btn{background:#dcfce7;color:#166534;padding:7px 10px;font-size:13px}
+.open-btn:hover{background:#bbf7d0}
+.publication-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.publication-card{border:1px solid #e5e7eb;border-radius:8px;padding:16px;background:#fff;min-height:130px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer}
+.publication-card:hover{box-shadow:0 8px 24px rgba(15,23,42,.12);transform:translateY(-1px)}
+.publication-title{font-size:16px;font-weight:800;margin-bottom:8px;word-break:break-word}
+.publication-text{font-size:13px;color:#64748b;line-height:1.55;white-space:pre-wrap}
+.publication-meta{font-size:13px;font-weight:800;color:#2563eb;margin-top:10px}
+.publication-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:14px}
 .modal{position:fixed;inset:0;background:rgba(15,23,42,.62);display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
 .modal.show{display:flex}
 .modal-box{background:#fff;border-radius:10px;width:min(100%,960px);max-height:90vh;overflow:auto;padding:18px}
@@ -99,6 +123,7 @@ details[open] .timeline-arrow{transform:rotate(180deg)}
 .modal-content img,.modal-content video{max-width:100%;display:block;margin:auto}
 .modal-content iframe{width:100%;height:70vh;border:1px solid #e5e7eb}
 .modal-content pre{white-space:pre-wrap;word-break:break-word;background:#f9fafb;padding:14px;border-radius:8px}
+@media(max-width:760px){.home-cards{grid-template-columns:1fr}.progress-row{grid-template-columns:1fr;gap:4px;padding:10px 0}.progress-row.header{display:none}}
 @media(max-width:640px){.app-header{height:auto;padding:18px;align-items:stretch;flex-direction:column}.app-body{padding:18px}.logout-btn{width:100%}.link-inputs{grid-template-columns:1fr}}
 </style>
 </head>
@@ -174,7 +199,7 @@ const previewContent=document.getElementById("previewContent");
 
 let currentUser=null;
 let data={categories:[]};
-let view={categoryId:null,projectId:null,itemId:null,tab:"roadmap"};
+let view={section:"home",categoryId:null,projectId:null,itemId:null,tab:"roadmap"};
 
 const cardColorClasses=["cool-blue","cool-mint","cool-lavender","cool-slate","cool-teal"];
 
@@ -231,7 +256,23 @@ if(!Array.isArray(data.categories)){
 data.categories=[];
 }
 
+ensurePortfolioSettings();
 await ensureCardColors();
+}
+
+function ensurePortfolioSettings(){
+data.homeCards||={};
+data.homeCards.published||={
+title:"① 公開・完了したもの",
+text:"公開したページを大項目ごとに分けて表示。四角の中を触るとリンクが開く。編集からURLを登録する。",
+meta:"公開リンク / 完了アーカイブ"
+};
+data.homeCards.development||={
+title:"② 開発中",
+text:"既存indexと同じ大項目→中項目→小項目の操作を保持。中身の基本機能は触らない。",
+meta:"既存の階層管理"
+};
+data.publications||={};
 }
 
 async function ensureCardColors(){
@@ -319,7 +360,11 @@ item.stumbles=[];
 function render(){
 renderBreadcrumb();
 
-if(!view.categoryId)return renderCategories();
+if(!view.categoryId){
+if(view.section==="published")return renderPublished();
+if(view.section==="development")return renderDevelopmentCategories();
+return renderHome();
+}
 if(!view.projectId)return renderProjects();
 if(!view.itemId)return renderItems();
 
@@ -330,16 +375,26 @@ function renderBreadcrumb(){
 const cat=getCategory();
 const proj=getProject();
 const item=getItem();
+const sectionLabel=view.section==="published"?"公開・完了したもの":view.section==="development"?"開発中":"";
 
 breadcrumb.innerHTML=`
 <button type="button" data-go="home">目次</button>
+${sectionLabel&&!cat?`<span>/</span><span>${escapeHtml(sectionLabel)}</span>`:""}
+${sectionLabel&&cat?`<span>/</span><button type="button" data-go="section">${escapeHtml(sectionLabel)}</button>`:""}
 ${cat?`<span>/</span><button type="button" data-go="category">${escapeHtml(cat.name)}</button>`:""}
 ${proj?`<span>/</span><button type="button" data-go="project">${escapeHtml(proj.name)}</button>`:""}
 ${item?`<span>/</span><span>${escapeHtml(item.name)}</span>`:""}
 `;
 
 breadcrumb.querySelector('[data-go="home"]')?.addEventListener("click",()=>{
-view={categoryId:null,projectId:null,itemId:null,tab:"roadmap"};
+view={section:"home",categoryId:null,projectId:null,itemId:null,tab:"roadmap"};
+render();
+});
+
+breadcrumb.querySelector('[data-go="section"]')?.addEventListener("click",()=>{
+view.categoryId=null;
+view.projectId=null;
+view.itemId=null;
 render();
 });
 
@@ -355,14 +410,79 @@ render();
 });
 }
 
-function renderCategories(){
+function renderHome(){
 mainActions.innerHTML=`<button type="button" id="addCategoryBtn">大項目を追加</button>`;
 
-appContent.innerHTML=data.categories.length
-?`<div class="grid">${data.categories.map((cat)=>cardHtml(cat,cat.projects?.length||0,"中項目",true)).join("")}</div>`
-:`<div class="empty">大項目がありません。</div>`;
+appContent.innerHTML=`
+${progressLogHtml(4)}
+<section class="home-cards">
+${homeRouteCardHtml("published")}
+${homeRouteCardHtml("development")}
+</section>
+`;
 
 document.getElementById("addCategoryBtn").addEventListener("click",addCategory);
+bindHomeRouteActions();
+bindProgressEditButtons();
+}
+
+function homeRouteCardHtml(key){
+const card=data.homeCards[key];
+
+return`
+<article class="route-card" data-route-card="${key}">
+<div>
+<div class="route-card-title">${escapeHtml(card.title)}</div>
+<div class="route-card-text">${escapeHtml(card.text)}</div>
+<div class="route-card-meta">${escapeHtml(card.meta)}</div>
+</div>
+<div class="route-card-actions">
+<button class="edit-btn" type="button" data-edit-home-card="${key}">編集</button>
+<button class="open-btn" type="button" data-open-section="${key}">開く</button>
+</div>
+</article>
+`;
+}
+
+function bindHomeRouteActions(){
+appContent.querySelectorAll("[data-open-section]").forEach((btn)=>{
+btn.addEventListener("click",()=>{
+view={section:btn.dataset.openSection,categoryId:null,projectId:null,itemId:null,tab:"roadmap"};
+render();
+});
+});
+
+appContent.querySelectorAll("[data-edit-home-card]").forEach((btn)=>{
+btn.addEventListener("click",async()=>{
+const key=btn.dataset.editHomeCard;
+const card=data.homeCards[key];
+const title=prompt("タイトルを編集",card.title);
+if(title===null)return;
+const text=prompt("補足を編集",card.text);
+if(text===null)return;
+const meta=prompt("下部ラベルを編集",card.meta);
+if(meta===null)return;
+
+card.title=title.trim()||card.title;
+card.text=text.trim()||card.text;
+card.meta=meta.trim()||card.meta;
+await persistAndRender();
+});
+});
+}
+
+function renderDevelopmentCategories(){
+mainActions.innerHTML=`<button type="button" id="addCategoryBtn">大項目を追加</button>`;
+
+appContent.innerHTML=`
+${progressLogHtml(4)}
+${data.categories.length
+?`<div class="grid">${data.categories.map((cat)=>cardHtml(cat,cat.projects?.length||0,"中項目",true)).join("")}</div>`
+:`<div class="empty">大項目がありません。</div>`}
+`;
+
+document.getElementById("addCategoryBtn").addEventListener("click",addCategory);
+bindProgressEditButtons();
 
 appContent.querySelectorAll(".card").forEach((card)=>{
 card.addEventListener("click",()=>{
@@ -372,6 +492,196 @@ render();
 });
 
 bindCardActions(data.categories,"大項目名");
+}
+
+function renderPublished(){
+mainActions.innerHTML="";
+
+appContent.innerHTML=data.categories.length
+?data.categories.map((cat)=>publishedGroupHtml(cat)).join("")
+:`<div class="empty">大項目がありません。</div>`;
+
+appContent.querySelectorAll("[data-open-publication]").forEach((card)=>{
+card.addEventListener("click",(event)=>{
+if(event.target.closest("button"))return;
+openPublication(card.dataset.openPublication);
+});
+});
+
+appContent.querySelectorAll("[data-publication-open-btn]").forEach((btn)=>{
+btn.addEventListener("click",(event)=>{
+event.stopPropagation();
+openPublication(btn.dataset.publicationOpenBtn);
+});
+});
+
+appContent.querySelectorAll("[data-edit-publication]").forEach((btn)=>{
+btn.addEventListener("click",async(event)=>{
+event.stopPropagation();
+await editPublication(btn.dataset.editPublication);
+});
+});
+}
+
+function publishedGroupHtml(cat){
+const items=itemsForCategory(cat);
+
+return`
+<section class="published-group">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+<h2>${escapeHtml(cat.name)}</h2>
+<span class="card-meta">大項目ごとに公開リンクを分類</span>
+</div>
+${items.length?`<div class="publication-grid">${items.map((entry)=>publicationCardHtml(entry)).join("")}</div>`:`<div class="empty">公開・完了に登録できる小項目がありません。</div>`}
+</section>
+`;
+}
+
+function itemsForCategory(cat){
+const results=[];
+
+(cat.projects||[]).forEach((proj)=>{
+(proj.items||[]).forEach((item)=>{
+results.push({cat,proj,item});
+});
+});
+
+return results;
+}
+
+function publicationCardHtml({cat,proj,item}){
+const publication=data.publications[item.id]||{};
+const title=publication.title||item.name;
+const description=publication.description||`${cat.name} / ${proj.name}`;
+const hasUrl=Boolean(publication.url);
+
+return`
+<article class="publication-card" data-open-publication="${escapeHtml(item.id)}">
+<div>
+<div class="publication-title">${escapeHtml(title)}</div>
+<div class="publication-text">${escapeHtml(description)}</div>
+<div class="publication-meta">${hasUrl?"URL登録済み":"URL未設定"}</div>
+</div>
+<div class="publication-actions">
+<button class="edit-btn" type="button" data-edit-publication="${escapeHtml(item.id)}">編集</button>
+<button class="open-btn" type="button" data-publication-open-btn="${escapeHtml(item.id)}">開く</button>
+</div>
+</article>
+`;
+}
+
+async function editPublication(itemId){
+const found=findItemById(itemId);
+if(!found)return;
+
+const current=data.publications[itemId]||{};
+const title=prompt("公開カード名を編集",current.title||found.item.name);
+if(title===null)return;
+const description=prompt("補足を編集",current.description||`${found.cat.name} / ${found.proj.name}`);
+if(description===null)return;
+const url=prompt("開くURLを入力",current.url||"");
+if(url===null)return;
+
+data.publications[itemId]={
+...current,
+id:itemId,
+categoryId:found.cat.id,
+projectId:found.proj.id,
+itemId,
+title:title.trim()||found.item.name,
+description:description.trim(),
+url:url.trim(),
+updatedAt:Date.now()
+};
+
+await persistAndRender();
+}
+
+function openPublication(itemId){
+const url=data.publications[itemId]?.url;
+
+if(!url){
+alert("URLが未設定です。編集ボタンからURLを登録してください。");
+return;
+}
+
+window.open(url,"_blank","noopener");
+}
+
+function findItemById(itemId){
+for(const cat of data.categories||[]){
+for(const proj of cat.projects||[]){
+for(const item of proj.items||[]){
+if(item.id===itemId)return{cat,proj,item};
+}
+}
+}
+return null;
+}
+
+function collectStatusEntries(){
+const entries=[];
+
+(data.categories||[]).forEach((cat)=>{
+(cat.projects||[]).forEach((proj)=>{
+(proj.items||[]).forEach((item)=>{
+ensureItemShape(item);
+(item.statuses||[]).forEach((status)=>{
+entries.push({
+...status,
+categoryName:cat.name,
+projectName:proj.name,
+itemName:item.name,
+itemId:item.id
+});
+});
+});
+});
+});
+
+return entries.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))||String(b.id||"").localeCompare(String(a.id||"")));
+}
+
+function progressLogHtml(limit=4){
+const entries=collectStatusEntries().slice(0,limit);
+
+return`
+<section class="top-progress">
+<h2>進捗ログ</h2>
+${entries.length?`
+<div class="progress-table">
+<div class="progress-row header">
+<div>日付</div><div>プロジェクト</div><div>種別</div><div>内容</div><div>状態</div><div>編集</div>
+</div>
+${entries.map((entry)=>`
+<div class="progress-row">
+<div>${escapeHtml(entry.date||"")}</div>
+<div>${escapeHtml(entry.itemName)}</div>
+<div>${entry.type==="stumble"?"躓き":"進捗"}</div>
+<div>${escapeHtml(entry.title||entry.text||"")}</div>
+<div><span class="status-pill ${entry.type==="stumble"?"stumble":"progress"}">${entry.type==="stumble"?"要確認":"作業中"}</span></div>
+<div><button class="edit-btn" type="button" data-edit-progress-item="${escapeHtml(entry.itemId)}">編集</button></div>
+</div>
+`).join("")}
+</div>
+`:`<div class="empty">進捗ログがありません。</div>`}
+</section>
+`;
+}
+
+function bindProgressEditButtons(){
+appContent.querySelectorAll("[data-edit-progress-item]").forEach((btn)=>{
+btn.addEventListener("click",()=>{
+const found=findItemById(btn.dataset.editProgressItem);
+if(!found)return;
+view.section="development";
+view.categoryId=found.cat.id;
+view.projectId=found.proj.id;
+view.itemId=found.item.id;
+view.tab="status";
+render();
+});
+});
 }
 
 function renderProjects(){
